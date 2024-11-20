@@ -1,0 +1,78 @@
+body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    .carousel {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      height: 300px; /* Adjust as needed */
+    }
+    .images-wrapper {
+      display: flex;
+      width: 300%;
+      height: 100%;
+      animation: slide 12s infinite;
+    }
+    .images-wrapper img {
+      width: 100%;
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    /* Animation */
+    @keyframes slide {
+      0%, 33% {
+        transform: translateX(0%);
+      }
+      34%, 66% {
+        transform: translateX(-100%);
+      }
+      67%, 100% {
+        transform: translateX(-200%);
+      }
+    }
+
+    /* Text Slider */
+    .text-slider {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: white;
+    }
+    .text-slider h2 {
+      animation: fade 12s infinite;
+    }
+
+    @keyframes fade {
+      0%, 33% { opacity: 1; }
+      34%, 66% { opacity: 0; }
+      67%, 100% { opacity: 1; }
+    }
+
+    /* Bullets */
+    .bullets {
+      position: absolute;
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    .bullets span {
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+    .bullets span:nth-child(1) { animation: bullet 12s infinite; }
+    .bullets span:nth-child(2) { animation: bullet 12s infinite 4s; }
+    .bullets span:nth-child(3) { animation: bullet 12s infinite 8s; }
+
+    @keyframes bullet {
+      0%, 33% { opacity: 1; }
+      34%, 100% { opacity: 0.5; }
+    }

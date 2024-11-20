@@ -1,4 +1,4 @@
-from flask import request, jsonify, Flask
+from flask import request, jsonify, Flask, render_template
 import finnhub, os
 from dotenv import load_dotenv
 
@@ -10,8 +10,22 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-  news = finnhub_client.general_news('general', min_id=0)
-  return jsonify(news)
+    return render_template('login.html')
 
+@app.route('/preview')
+def preview():
+    return render_template('preview.html')
+
+@app.route('/add')
+def add_stocks():
+    return render_template('adds.html')
+
+@app.route('/remove')
+def remove_stocks():
+    return render_template('removes.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+    
 if __name__ == '__main__':
   app.run(debug=True)
