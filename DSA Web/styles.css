@@ -1,0 +1,84 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+header.navbar {
+    background: #333;
+    color: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header.navbar .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+header.navbar nav ul {
+    list-style: none;
+    display: flex;
+}
+
+header.navbar nav ul li {
+    margin-left: 2rem;
+}
+
+header.navbar nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.section {
+    padding: 2rem;
+    background: #fff;
+    margin: 2rem auto;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+}
+
+.section h1 {
+    margin-bottom: 1rem;
+}
+
+form input, form button, .oauth-button, .redirect {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+form button, .oauth-button, .redirect {
+    background: #333;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+form button:hover, .oauth-button:hover, .redirect:hover {
+    background: #555;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: #333;
+    color: #fff;
+    margin-top: 2rem;
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">Real-Time Stock Price Analyzer</div>
+        <nav>
+            <ul>
+                <li><a href="preview.html">Home</a></li>
+                <li><a href="adds.html">Add Stocks</a></li>
+                <li><a href="removes.html">Remove Stocks</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="graph" class="section">
+            <h1>Stock Price Graph</h1>
+            <canvas id="stockGraph" width="800" height="400"></canvas>
+        </section>
+
+        <section id="buy" class="section">
+            <h1>Buy Stocks</h1>
+            <a href="/buy.html" class="redirect">Proceed to Buy</a>
+        </section>
+
+        <section id="sell" class="section">
+            <h1>Sell Stocks</h1>
+            <a href="/sell.html" class="redirect">Proceed to Sell</a>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 StockAnalyzer. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        const ctx = document.getElementById('stockGraph').getContext('2d');
+    </script>
+</body>
+</html>
