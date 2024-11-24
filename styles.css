@@ -1,0 +1,159 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Navbar Styles */
+header.navbar {
+    background: #333;
+    color: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header.navbar .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+header.navbar nav ul {
+    list-style: none;
+    display: flex;
+}
+
+header.navbar nav ul li {
+    margin-left: 2rem;
+}
+
+header.navbar nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+/* Section Styles */
+.section {
+    padding: 2rem;
+    background: #fff;
+    margin: 2rem auto;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+}
+
+.section h1 {
+    margin-bottom: 1rem;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    table-layout: fixed; /* Ensures uniform column widths */
+}
+
+th, td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #ccc;
+}
+
+th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+
+/* Aligning Price, Quantity, and Action Columns */
+th:nth-child(2), td:nth-child(2) {
+    text-align: right; /* Align Price to the right */
+    padding-right: 2rem; /* Space for alignment */
+}
+
+th:nth-child(3), td:nth-child(3) {
+    text-align: center; /* Align Quantity to the center */
+}
+
+th:nth-child(4), td:nth-child(4) {
+    text-align: center; /* Align Action buttons to the center */
+}
+
+/* Delete Button (Trash Icon) */
+.deleteBtn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #e74c3c;
+}
+
+.deleteBtn:hover {
+    color: #c0392b;
+}
+
+/* Add Button for Trending Stocks */
+.addBtn {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.addBtn:hover {
+    background: #2ecc71;
+}
+
+/* Quantity Input for Owned Stocks */
+.removeQuantityInput {
+    width: 60px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Quantity Input for Trending Stocks */
+.quantityInput {
+    width: 60px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Footer Styles */
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: #333;
+    color: #fff;
+    margin-top: 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo img {
+    width: 50px;
+    margin-right: 0.3rem;
+  }
+  
+  .logo h4 {
+    font-size: 1.1rem;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+  }
