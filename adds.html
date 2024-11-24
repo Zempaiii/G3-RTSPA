@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">Real-Time Stock Price Analyzer</div>
+        <nav>
+            <ul>
+                <li><a href="preview.html">Home</a></li>
+                <li><a href="adds.html">Your Stocks</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="add" class="section">
+            <h1>YOUR STOCKS</h1>
+            
+            <!-- User-owned stocks table -->
+            <h2>Owned</h2>
+            <table id="ownedStocks">
+                <thead>
+                    <tr>
+                        <th>Stock Symbol</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Stock rows will be inserted here dynamically -->
+                </tbody>
+            </table>
+
+            <!-- Trending stocks table -->
+            <h2>Trending Stocks</h2>
+            <table id="trendingStocks">
+                <thead>
+                    <tr>
+                        <th>Stock Symbol</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Trending stocks will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        // Example data for owned and trending stocks
+        const ownedStocks = [
+            { symbol: 'AAPL', price: 145.30, quantity: 10 },
+            { symbol: 'GOOGL', price: 2734.22, quantity: 5 }
+        ];
+
+        const trendingStocks = [
+            { symbol: 'AMZN', price: 3345.50 },
+            { symbol: 'TSLA', price: 789.65 }
+        ];
+
+        // Function to populate owned stocks table
+        function displayOwnedStocks() {
+            const ownedStocksTable = document.getElementById('ownedStocks').getElementsByTagName('tbody')[0];
+            ownedStocksTable.innerHTML = ''; // Clear any existing rows
+            ownedStocks.forEach(stock => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${stock.symbol}</td>
+                    <td>${stock.price}</td>
+                    <td>${stock.quantity}</td>
+                    <td>
+                        <input type="number" class="removeQuantityInput" id="remove-${stock.symbol}" value="1" min="1" max="${stock.quantity}" />
+                        <button class="deleteBtn" onclick="removeStock('${stock.symbol}')">🗑️</button>
+                    </td>
+                `;
+                ownedStocksTable.appendChild(row);
+            });
+        }
+
+        // Function to display trending stocks
+        function displayTrendingStocks() {
+            const trendingStocksTable = document.getElementById('trendingStocks').getElementsByTagName('tbody')[0];
+            trendingStocksTable.innerHTML = ''; // Clear any existing rows
+            trendingStocks.forEach(stock => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${stock.symbol}</td>
+                    <td>${stock.price}</td>
+                    <td><input type="number" class="quantityInput" id="quantity-${stock.symbol}" value="1" min="1" /></td>
+                    <td><button class="addBtn" onclick="addStock('${stock.symbol}')">Add</button></td>
+                `;
+                trendingStocksTable.appendChild(row);
+            });
+        }
+
+        // Function to add a stock to the owned list (or update if it already exists)
+        function addStock(symbol) {
+            const stock = trendingStocks.find(s => s.symbol === symbol);
+            const quantity = parseInt(document.getElementById(`quantity-${symbol}`).value, 10) || 1;
+            
+            if (stock) {
+                // Check if the stock already exists in the owned stocks
+                const existingStock = ownedStocks.find(s => s.symbol === stock.symbol);
+                
+                if (existingStock) {
+                    // Update quantity if the stock already exists
+                    existingStock.quantity += quantity;
+                } else {
+                    // Add the new stock if it doesn't exist in the owned list
+                    ownedStocks.push({ symbol: stock.symbol, price: stock.price, quantity: quantity });
+                }
+                
+                // Re-render the tables after the update
+                displayOwnedStocks();
+                displayTrendingStocks();
+            }
+        }
+
+        // Function to remove a specified quantity of stock from the owned list
+        function removeStock(symbol) {
+            const stock = ownedStocks.find(s => s.symbol === symbol);
+            const quantityToRemove = parseInt(document.getElementById(`remove-${symbol}`).value, 10) || 1;
+
+            if (stock && quantityToRemove <= stock.quantity) {
+                if (stock.quantity > quantityToRemove) {
+                    // Reduce the quantity if more than one is being removed
+                    stock.quantity -= quantityToRemove;
+                } else {
+                    // Remove the stock completely if the quantity matches
+                    const index = ownedStocks.indexOf(stock);
+                    ownedStocks.splice(index, 1);
+                }
+
+                // Re-render the owned stocks table
+                displayOwnedStocks();
+            } else {
+                alert('Invalid quantity or stock not found.');
+            }
+        }
+
+        // Initial render of tables
+        displayOwnedStocks();
+        displayTrendingStocks();
+    </script>
+
+</body>
+</html>
