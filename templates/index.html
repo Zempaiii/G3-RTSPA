@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RTSPA</title>
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <style>
+    nav {
+      z-index : 1100;
+    }
+    .nav-link {
+      margin-right: 20px;
+    }
+    #search {
+      width: 200px;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    #suggestions {
+      position: absolute;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-md bg-dark py-3" data-bs-theme="dark">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <span class="bs-icon-sm bs-icon-rounded bs-icon-primary d-flex justify-content-center align-items-center me-2 bs-icon">
+        </span>
+        <span>Real-Time Stock Price Analyis</span>
+      </a>
+      <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5">
+        <span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navcol-5">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('add_stocks') }}">My Stocks</a></li>
+        </ul>
+        <ul class="navbar-nav"></ul>
+          <li class="nav-item">
+            <div style="position: relative;">
+              <input type="text" id="search" placeholder="Search Stocks">
+              <div id="suggestions" style="background-color:white"></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
