@@ -13,15 +13,20 @@ search_bar.addEventListener("input", async () => {
   const results = await response.json();
 
   suggestions.innerHTML = ""; 
+  if (response.status === 500) {
+    suggestions.innerHTML = `<div id="error">An error occurred while searching. Please try again later.</div>`;
+    return;
+  }
+
   if (results.length > 0 && !results.error) {
     results.forEach(stock => {
       const div = document.createElement("div");
       div.className = "suggestion";
 
-      div.innerHTML = `<a><strong style="margin-left : 20px">${stock.symbol}</strong> - ${stock.name} (${stock.region})</a>`;
+      div.innerHTML = `<a class="stocks" href="/spiaa?symbol=${stock.symbol})</a>`;
       div.onclick = () => {
         search_bar.value = `${stock.symbol} - ${stock.name}`;
-        suggestions.innerHTML = ""; 
+        suggestions.innerHTML = "";
       };
 
       suggestions.appendChild(div);

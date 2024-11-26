@@ -7,6 +7,7 @@
     <title>stock-info-and-analysis-template</title>
     <link rel="stylesheet" href="{{  url_for('static', filename='css/bootstrap.min.css')  }}">
     <link rel="stylesheet" href="{{  url_for('static', filename='css/Navbar-Right-Links-Dark-icons.css')  }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 
 <body>
@@ -39,7 +40,45 @@
         <p style="width: 300px;margin-top: .5rem;margin-left: 3rem;display: inline;"><strong>Region:&nbsp;</strong>{{region}}</p>
         <p style="width: 300px;margin-top: .5rem;margin-left: 3rem;display: inline-block;"><strong>Currency:&nbsp;</strong>{{currency}}</p>
     </div>
-    <div id="candle_graph" style="width: 100%;height: 300px;margin-top: 1rem;margin-right: 1rem;margin-bottom: 1rem;margin-left: 1rem;display: flex;position: relative;"></div>
+    <div id="candle_graph" style="width: 100%;height: 300px;margin-top: 1rem;margin-right: 1rem;margin-bottom: 1rem;margin-left: 1rem;display: flex;position: relative;">
+        <div id="candleChart" style="width: 100%; height: 100%;"></div>
+    </div>
+    <script>
+        const chartData = {{ chart_data | safe }};
+        
+        const dates = chartData.map(data => new Date(data.t));
+        const open = chartData.map(data => data.o);
+        const high = chartData.map(data => data.h);
+        const low = chartData.map(data => data.l);
+        const close = chartData.map(data => data.c);
+
+        const trace = {
+            x: dates,
+            close: close,
+            decreasing: {line: {color: 'red'}},
+            high: high,
+            increasing: {line: {color: 'green'}},
+            low: low,
+            open: open,
+            type: 'candlestick',
+            xaxis: 'x',
+            yaxis: 'y'
+        };
+
+        const data = [trace];
+
+        const layout = {
+            dragmode: 'zoom',
+            showlegend: false,
+            xaxis: {
+                rangeslider: {
+                    visible: false
+                }
+            }
+        };
+
+        Plotly.newPlot('candleChart', data, layout);
+    </script>
     <script src="{{  url_for('static', filename='assets/bootstrap/js/bootstrap.min.js')  }}"></script>
 </body>
 
