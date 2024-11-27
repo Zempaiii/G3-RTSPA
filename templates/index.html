@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RTSPA</title>
   <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <style>
     nav {
-      z-index : 1100;
+      z-index: 1100;
     }
     .nav-link {
       margin-right: 20px;
@@ -35,7 +36,7 @@
       <a class="navbar-brand d-flex align-items-center" href="#">
         <span class="bs-icon-sm bs-icon-rounded bs-icon-primary d-flex justify-content-center align-items-center me-2 bs-icon">
         </span>
-        <span>Real-Time Stock Price Analyis</span>
+        <span>Real-Time Stock Price Analysis</span>
       </a>
       <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5">
         <span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span>
@@ -45,7 +46,7 @@
           <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('add_stocks') }}">My Stocks</a></li>
         </ul>
-        <ul class="navbar-nav"></ul>
+        <ul class="navbar-nav">
           <li class="nav-item">
             <div style="position: relative;">
               <input type="text" id="search" placeholder="Search Stocks">
@@ -56,6 +57,118 @@
       </div>
     </div>
   </nav>
+
+ <!-- Trending Stocks Section -->
+<div class="container mt-5">
+  <h3 class="mb-4">Trending Stocks</h3>
+  <div class="row">
+    <!-- Company Card 1 -->
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title mb-0">Company Name</h5>
+              <small class="text-muted">Stock Description</small>
+            </div>
+            <div class="text-end">
+              <h4 class="mb-0">$---.--</h4>
+              <span class="text-muted">
+                <i class="fas fa-minus"></i> --.--%
+              </span>
+            </div>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <div>
+              <small class="text-muted">Day High</small>
+              <p class="mb-0">$---.--</p>
+            </div>
+            <div>
+              <small class="text-muted">Day Low</small>
+              <p class="mb-0">$---.--</p>
+            </div>
+            <div>
+              <small class="text-muted">Volume</small>
+              <p class="mb-0">--.-M</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Company Card 2 -->
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title mb-0">Company Name</h5>
+              <small class="text-muted">Stock Description</small>
+            </div>
+            <div class="text-end">
+              <h4 class="mb-0">$---.--</h4>
+              <span class="text-muted">
+                <i class="fas fa-minus"></i> --.--%
+              </span>
+            </div>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <div>
+              <small class="text-muted">Day High</small>
+              <p class="mb-0">$---.--</p>
+            </div>
+            <div>
+              <small class="text-muted">Day Low</small>
+              <p class="mb-0">$---.--</p>
+            </div>
+            <div>
+              <small class="text-muted">Volume</small>
+              <p class="mb-0">--.-M</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Company Card 3 -->
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="card-title mb-0">Company Name</h5>
+              <small class="text-muted">Stock Description</small>
+            </div>
+            <div class="text-end">
+              <h4 class="mb-0">$---.--</h4>
+              <span class="text-muted">
+                <i class="fas fa-minus"></i> --.--%
+              </span>
+            </div>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <div>
+              <small class="text-muted">Day High</small>
+              <p class="mb-0">$---.--</p>
+            </div>
+            <div>
+              <small class="text-muted">Day Low</small>
+              <p class="mb-0">$---.--</p>
+            </div>
+            <div>
+              <small class="text-muted">Volume</small>
+              <p class="mb-0">--.-M</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
