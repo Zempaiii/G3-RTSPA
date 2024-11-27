@@ -13,13 +13,19 @@
       margin-right: 20px;
     }
     #search {
-      width: 200px;
+      width: 300px;
       padding: 5px;
       border-radius: 5px;
     }
     #suggestions {
       position: absolute;
-      width: 200px;
+      width: 300px;
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: #efefef;
+    }
+    #suggestions:hover {
+      background-color: rgb(202, 255, 252)
     }
   </style>
 </head>
@@ -43,7 +49,7 @@
           <li class="nav-item">
             <div style="position: relative;">
               <input type="text" id="search" placeholder="Search Stocks">
-              <div id="suggestions" style="background-color:white"></div>
+              <div id="suggestions" style="background-color:#eee;"></div>
             </div>
           </li>
         </ul>
