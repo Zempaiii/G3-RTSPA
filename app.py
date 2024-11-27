@@ -78,6 +78,9 @@ def search():
 
 @app.route('/home')
 def preview():
+    symbols = ['MSFT', 'AMZN', 'WMT']
+    for symbols in symbol:
+        pass
     return render_template('index.html')
 
 @app.route('/add')
