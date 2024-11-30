@@ -1,12 +1,12 @@
 from flask import request, jsonify, Flask, render_template
-import os, alpha_vantage, sqlite3, requests, plotly
+import os, alpha_vantage, sqlite3, requests, plotly, time
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from dotenv import load_dotenv
 import json
 
 load_dotenv()
-POLYGON_API_KEY = os.getenv('POLYGON_API_KEY')
+API_KEY = os.getenv('API_KEY')
 
 app = Flask(__name__)
 
@@ -57,8 +57,32 @@ def prepare_candle_plot(data, symbol):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
-
+    symbol_data = [
+        {"symbol": "MSFT", "price": 0, "percent": 0, "high": 0, "low": 0, "volume": 0},
+        {"symbol": "AMZN", "price": 0, "percent": 0, "high": 0, "low": 0, "volume": 0},
+        {"symbol": "WMT", "price": 0, "percent": 0, "high": 0, "low": 0, "volume": 0},
+    ]
+    
+    for data in symbol_data:
+        url = f'https://api.polygon.io/v1/open-close/{data["symbol"]}/{(datetime.now()-timedelta(days=1)).strftime('%Y-%m-%d')}?adjusted=true&apiKey=_zh5HNxfNX9YSJ706qr5p_OoRDWwn0RC'
+        response = requests.get(url)
+        if response.status_code != 200:
+            time.sleep(60)
+            response = requests.get(url)
+        results = response.json()
+        data["price"] = f"{results['close']:.2f}"
+        data["percent"] = f"{((results["close"] - results["open"]) / results["open"] * 100):.2f}"
+        data["high"] = f"{results["high"]:.2f}"
+        data["low"] = f"{results["low"]:.2f}"
+        data["volume"] = f"{(results["volume"] / 1000000):.2f}"
+            
+    return render_template('index.html', 
+                           price_1 = symbol_data[0]["price"], price_2 = symbol_data[1]["price"], price_3 = symbol_data[2]["price"],
+                           percent_1 = symbol_data[0]["percent"], percent_2 = symbol_data[1]["percent"], percent_3 = symbol_data[2]["percent"], 
+                           high_1 = symbol_data[0]["high"], high_2 = symbol_data[1]["high"], high_3 = symbol_data[2]["high"], 
+                           low_1 = symbol_data[0]["low"], low_2 = symbol_data[1]["low"], low_3 = symbol_data[2]["low"], 
+                           vol_1 = symbol_data[0]["volume"], vol_2 = symbol_data[1]["volume"], vol_3 = symbol_data[2]["volume"])
+    
 @app.route('/search')
 def search():
     query = request.args.get('query', '').strip()
@@ -78,10 +102,7 @@ def search():
 
 @app.route('/home')
 def preview():
-    symbols = ['MSFT', 'AMZN', 'WMT']
-    for symbols in symbol:
-        pass
-    return render_template('index.html')
+    return home()
 
 @app.route('/add')
 def add_stocks():
@@ -90,7 +111,6 @@ def add_stocks():
 @app.route('/remove')
 def remove_stocks():
     return render_template('removes.html')
-
 @app.route('/spiaa')
 def spiaa():
     symbol = request.args.get('symbol', '').strip()
