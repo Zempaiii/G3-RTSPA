@@ -1,5 +1,5 @@
 from flask import request, jsonify, Flask, render_template
-import os, sqlite3, requests, plotly, random, nasdaqdatalink
+import os, sqlite3, requests, plotly, random
 from datetime import datetime
 import plotly.graph_objects as go
 from dotenv import load_dotenv
@@ -33,7 +33,7 @@ def search_stocks(query):
 
 # api fetching logic
 def fetch_api_data(symbol):
-    url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe=5min&limit=1000&adjustment=raw&feed=sip&sort=asc"
+    url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe=10min&limit=1000&adjustment=raw&feed=sip&sort=asc"
     headers = {
         "accept": "application/json",
         "APCA-API-KEY-ID": "PK9XXY01BXT1F6L9EFZ4",
@@ -45,12 +45,13 @@ def fetch_api_data(symbol):
 def prepare_candle_plot(data, symbol):
     results = data.get(symbol, [])
     dates = [entry["t"] for entry in results]
+    dates = [datetime.fromtimestamp(ts / 1000) for ts in dates]
     open_prices = [entry["o"] for entry in results]
     high_prices = [entry["h"] for entry in results]
     low_prices = [entry["l"] for entry in results]
     close_prices = [entry["c"] for entry in results]
 
-    dates = [datetime.fromtimestamp(ts / 1000).strftime('%Y-%m-%d') for ts in dates]
+    dates = [datetime.fromtimestamp(ts / 1000).astimezone().strftime('%x %X') for ts in dates]  # Use system's timezone
 
     fig = go.Figure(data=[go.Candlestick(
         x=dates,
@@ -111,7 +112,7 @@ def home():
         latest_bar = response.json().get("bar", {})
         data["high"] = f"{latest_bar['h']:.2f}"
         data["low"] = f"{latest_bar['l']:.2f}"
-        data["volume"] = f"{(latest_bar.get('v', 0) / 1000000):.2f}"
+        data["volume"] = f"{(latest_bar['v'] / 1000):.2f}"
             
     return render_template('index.html', stocks=symbol_data)
 

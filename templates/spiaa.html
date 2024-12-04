@@ -71,7 +71,11 @@
     <script>
         const chartData = JSON.parse('{{ chart_data | safe }}');
         
-        const dates = chartData.map(data => new Date(data.t));
+        const dates = chartData.map(data => {
+            let date = new Date(data.t);
+            date.setHours(date.getHours() + 3);
+            return date;
+        });
         const open = chartData.map(data => data.o);
         const high = chartData.map(data => data.h);
         const low = chartData.map(data => data.l);
