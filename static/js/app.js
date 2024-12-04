@@ -22,9 +22,9 @@ search_bar.addEventListener("input", async () => {
     results.forEach(stock => {
       const div = document.createElement("div");
       div.className = "suggestion";
-      div.innerHTML = `<a class="stocks" href="/spiaa?symbol=${stock.symbol}&name=${stock.name}" style="color:black; text-decoration:none; margin-left:15px;"><strong>${stock.symbol}</strong> - ${stock.name}</a><hr style="margin: 5px;">`;
+      div.innerHTML = `<a class="stocks" href="/spiaa?symbol=${stock.Symbol}&name=${stock.Name}" style="color:black; text-decoration:none; margin-left:15px;"><strong>${stock.Symbol}</strong> - ${stock.Name}</a><hr style="margin: 5px;">`;
       div.onclick = () => {
-        search_bar.value = `${stock.symbol}`;
+        search_bar.value = `${stock.Symbol}`;
         suggestions.innerHTML = "";
       };
       suggestions.appendChild(div);
