@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const textGroup = document.querySelector(".text-group");
     const texts = [
         ["Real-Time Stock Price Analyzer"],
-        ["EXCLUSIVELY FOR PUP-T"],
+        ["EXCLUSIVELY FOR DSA"],
         ["Meet the Team"]
     ];
     let currentIndex = 0;

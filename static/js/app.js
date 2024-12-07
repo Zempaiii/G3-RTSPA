@@ -22,10 +22,13 @@ search_bar.addEventListener("input", async () => {
     results.forEach(stock => {
       const div = document.createElement("div");
       div.className = "suggestion";
-      div.innerHTML = `<a class="stocks" href="/spiaa?symbol=${stock.Symbol}&name=${stock.Name}" style="color:black; text-decoration:none; margin-left:15px;"><strong>${stock.Symbol}</strong> - ${stock.Name}</a><hr style="margin: 5px;">`;
-      div.onclick = () => {
+      div.innerHTML = `<a class="stocks" href="#" style="color:black; text-decoration:none; margin-left:15px;"><strong>${stock.Symbol}</strong> - ${stock.Name}</a><hr style="margin: 5px;">`;
+      div.onclick = async (event) => { 
+        event.preventDefault();
         search_bar.value = `${stock.Symbol}`;
         suggestions.innerHTML = "";
+        await fetch(`/set_stock?symbol=${stock.Symbol}&name=${stock.Name}`);
+        window.location.href = "/spiaa";
       };
       suggestions.appendChild(div);
     });

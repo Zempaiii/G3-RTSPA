@@ -1,4 +1,4 @@
-from flask import request, jsonify, Flask, render_template
+from flask import request, jsonify, Flask, render_template, session
 import os, sqlite3, requests, plotly, random
 from datetime import datetime
 import plotly.graph_objects as go
@@ -11,6 +11,7 @@ SECRET_KEY = os.getenv('ALPACA_SECRET')
 
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # Add a secret key for session management
 
 # search suggestion logic
 def search_stocks(query):
@@ -28,18 +29,20 @@ def search_stocks(query):
     conn.close()
     
     results_dict = [{'Symbol': symbol, 'Name': name} for symbol, name in results]
-    print(results_dict)
     return results_dict
 
 # api fetching logic
 def fetch_api_data(symbol):
-    url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe=10min&limit=1000&adjustment=raw&feed=sip&sort=asc"
+    url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe=5min&limit=1000&adjustment=raw&feed=sip&sort=asc"
     headers = {
         "accept": "application/json",
         "APCA-API-KEY-ID": "PK9XXY01BXT1F6L9EFZ4",
         "APCA-API-SECRET-KEY": "vdlBS5PgF4Lp7SgyYm42MCF5jm8JUlpPMEGvLnT3"
     }
     response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        print(f"Error fetching data: {response.text}")
+        return None
     return response.json()
 
 def prepare_candle_plot(data, symbol):
@@ -140,14 +143,23 @@ def remove_stocks():
 # retrieving graph data from API
 @app.route('/spiaa')
 def spiaa():
-    symbol = request.args.get('symbol', '').strip()
-    name = request.args.get('name', '').strip()
+    symbol = session.get('symbol', '').strip()
+    name = session.get('name', '').strip()
     
     data = fetch_api_data(symbol)
     if data is None or 'bars' not in data:
         return jsonify({"error": "Failed to fetch data from API"}), 500
     
     return render_template('spiaa.html', name=name, symbol=symbol, chart_data=json.dumps(data['bars']))
+
+@app.route('/set_stock')
+def set_stock():
+    symbol = request.args.get('symbol', '').strip()
+    name = request.args.get('name', '').strip()
+    session['symbol'] = symbol
+    session['name'] = name
+    print(session)
+    return jsonify({"message": "Stock set in session"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

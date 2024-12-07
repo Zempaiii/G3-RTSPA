@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign up</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Sign in & Sign up Form</title>
+  <link rel="stylesheet" href="{{  url_for('static', filename='css/style.css')}}" />
 </head>
 <body>
   <main>
@@ -15,28 +15,48 @@
           <!-- Sign-In Form -->
           <form autocomplete="off" class="sign-in-form" method="POST">
             <div class="logo">
-              <img src="pupt.png" alt="PUPT" />
               <h4>REAL-TIME STOCK PRICE ANALYZER</h4>
             </div>
 
             <div class="heading">
-              <h6>Have an account already?</h6>
-              <a href="loginchatgpt.html" class="toggle">Login</a>
+              <h2>Register!</h2>
+              <h6>Already have an account?</h6>
+              <a href="login.html" class="toggle">Login!</a>
             </div>
 
             <div class="actual-form">
-
-              <!-- Social Login Section -->
-              <div class="social-login">
-                <button type="button" class="social-btn facebook" onclick="openPopup('facebook')">
-                  <img src="fbicon.png" alt="Facebook" />
-                  Register with Facebook
-                </button>
-                <button type="button" class="social-btn google" onclick="openPopup('google')">
-                  <img src="googleicon.png" alt="Google" />
-                  Register with Google
-                </button>
+              <div class="input-wrap">
+                <input
+                  type="text"
+                  id="username"
+                  minlength="4"
+                  class="input-field"
+                  autocomplete="off"
+                  placeholder="Enter Username"
+                  required
+                />
               </div>
+
+              <div class="input-wrap">
+                <input
+                  type="password"
+                  id="password"
+                  minlength="8"
+                  class="input-field"
+                  autocomplete="off"
+                  placeholder="Enter Password"
+                  required
+                />
+              </div>
+
+              <p class="text">
+                By signing up, I agree to the
+                <a href="#">Terms of Services</a> and
+                <a href="#">Privacy Policy</a>
+              </p>
+
+              <input type="submit" value="Register" class="sign-btn-1" id="registerButton" />
+
             </div>
           </form>
 
@@ -60,10 +80,10 @@
                   minlength="4"
                   class="input-field"
                   autocomplete="off"
-                  placeholder="Enter Email"
+                  placeholder="Enter Username"
                   required
                 />
-                <label>Email</label>
+                <label>Username</label>
               </div>
 
               <div class="input-wrap">
@@ -74,13 +94,13 @@
                   placeholder="Enter Email"
                   required
                 />
-                <label>Password</label>
+                <label>Email</label>
               </div>
 
               <div class="input-wrap">
                 <input
                   type="password"
-                  minlength="4"
+                  minlength="8"
                   class="input-field"
                   autocomplete="off"
                   placeholder="Enter Password"
@@ -104,7 +124,7 @@
         <div class="carousel">
           <div class="images-wrapper">
             <img src="rts.png" class="image img-1 show" alt="" />
-            <img src="pup.jpg" class="image img-2" alt="" />
+            <img src="#" class="image img-2" alt="" />
             <img src="./img/image3.png" class="image img-3" alt="" />
           </div>
 
@@ -112,7 +132,7 @@
             <div class="text-wrap">
               <div class="text-group">
                 <h2>Real-Time Stock Price Analyzer</h2>
-                <h2>EXCLUSIVELY FOR PUP-T</h2>
+                <h2>EXCLUSIVELY FOR DSA</h2>
                 <h2>Meet the Team</h2>
               </div>
             </div>
@@ -127,9 +147,7 @@
       </div>
     </div>
   </main>
-
-  <!-- JavaScript Files -->
   <script src="carousel.js"></script>
-  <script src="jspopup.js"></script>
+  <script src="register.js"></script>
 </body>
 </html>
