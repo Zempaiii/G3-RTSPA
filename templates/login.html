@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign in & Sign up Form</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}" />
 </head>
 <body>
   <main>
@@ -13,15 +13,15 @@
       <div class="inner-box">
         <div class="forms-wrap">
           <!-- Sign-In Form -->
-          <form autocomplete="off" class="sign-in-form" method="POST">
+          <form autocomplete="off" class="sign-in-form" method="POST" action="{{ url_for('login') }}">
             <div class="logo">
-              <h4>REAL-TIME STOCK PRICE ANALYZER</h4>
+              <h4>SWIFT STOCK</h4>
             </div>
 
             <div class="heading">
               <h2>Login!</h2>
               <h6>Not registered yet?</h6>
-              <a href="register.html" class="toggle">Register!</a>
+              <a href="{{ url_for('register') }}" class="toggle">Register!</a>
             </div>
 
             <div class="actual-form">
@@ -50,23 +50,23 @@
               <input type="submit" value="Login" class="sign-btn" />
               <p class="text">
                 Forgot password?
-                <a href="forgot.html" class="toggle">I forgot!</a>
+                <a href="{{ url_for('forgot') }}" class="toggle">I forgot!</a>
               </p>
 
             </div>
           </form>
 
           <!-- Sign-Up Form -->
-          <form autocomplete="off" class="sign-up-form" method="POST">
+          <form autocomplete="off" class="sign-up-form" method="POST" action="{{ url_for('register') }}">
             <div class="logo">
-              <img src="pupt.png" alt="PUPT" />
+              <img src="{{ url_for('static', filename='images/pupt.png') }}" alt="PUPT" />
               <h4>REAL-TIME STOCK PRICE ANALYZER</h4>
             </div>
 
             <div class="heading">
               <h2>Get Started</h2>
               <h6>Already have an account?</h6>
-              <a href="login.html" class="toggle">Login</a>
+              <a href="{{ url_for('login') }}" class="toggle">Login</a>
             </div>
 
             <div class="actual-form">
@@ -119,9 +119,9 @@
         <!-- Carousel Section -->
         <div class="carousel">
           <div class="images-wrapper">
-            <img src="rts.png" class="image img-1 show" alt="" />
+            <img src="{{ url_for('static', filename='images/rts.png') }}" class="image img-1 show" alt="" />
             <img src="#" class="image img-2" alt="" />
-            <img src="./img/image3.png" class="image img-3" alt="" />
+            <img src="{{ url_for('static', filename='images/image3.png') }}" class="image img-3" alt="" />
           </div>
 
           <div class="text-slider">
@@ -143,7 +143,7 @@
       </div>
     </div>
   </main>
-  <script src="carousel.js"></script>
-  <script src="login.js"></script>
+  <script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>
