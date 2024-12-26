@@ -4,37 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RTSPA</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <style>
-    #homebtn {
-      font-size: 1.5rem;
-      text-decoration: none;
-      color: white;
-    }
-    nav {
-      z-index: 1100;
-    }
-    .nav-link {
-      margin-right: 20px;
-    }
-    #search {
-      width: 300px;
-      padding: 5px;
-      border-radius: 5px;
-    }
-    #suggestions {
-      position: absolute;
-      width: 300px;
-      max-height: 200px;
-      overflow-y: auto;
-      background-color: #efefef;
-    }
-    #suggestions:hover {
-      background-color: rgb(202, 255, 252)
-    }
-  </style>
+
 </head>
 <body>
   <nav class="navbar navbar-expand-md bg-dark py-3" data-bs-theme="dark">
@@ -81,8 +53,8 @@
             </div>
             <div class="text-end">
               <h4 class="mb-0">${{stock.price}}</h4>
-              <span class="text-muted">
-                <i class="fas fa-minus"></i> {{stock.percent}}%
+              <span class="text-muted" id="percent">
+                {{stock.percent}}%
               </span>
             </div>
           </div>
@@ -98,7 +70,7 @@
             </div>
             <div>
               <small class="text-muted">Volume</small>
-              <p class="mb-0">{{stock.volume}}K</p>
+              <p class="mb-0">{{stock.volume}}M</p>
             </div>
           </div>
         </div>

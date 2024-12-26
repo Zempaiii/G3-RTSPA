@@ -82,3 +82,36 @@ footer {
     color: #fff;
     margin-top: 2rem;
 }
+
+#homebtn {
+    font-size: 1.5rem;
+    text-decoration: none;
+    color: white;
+  }
+  nav {
+    z-index: 1100;
+  }
+  .nav-link {
+    margin-right: 20px;
+  }
+  #search {
+    width: 300px;
+    padding: 5px;
+    border-radius: 5px;
+  }
+  #suggestions {
+    position: absolute;
+    width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #efefef;
+  }
+  #suggestions:hover {
+    background-color: rgb(202, 255, 252)
+  }
+
+  #candleChart {
+    width: 100%;
+    height: 550px;
+    margin: 0 auto;
+  }
