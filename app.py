@@ -3,7 +3,7 @@ import os, sqlite3, requests, plotly, random
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from dotenv import load_dotenv
-import json, websocket
+import json
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
@@ -32,7 +32,7 @@ def search_stocks(query):
 # api fetching logic
 def fetch_api_data(symbol):
     end = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
-    start = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%dT00:00:00Z')
+    start = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%dT00:00:00Z')
     url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe=5T&start={start}&end={end}&limit=1000&adjustment=raw&feed=iex&sort=asc"
     headers = {
         "accept": "application/json",
@@ -46,6 +46,7 @@ def fetch_api_data(symbol):
     return response.json()
 
 def prepare_candle_plot(data, symbol):
+    print(data)
     results = data.get('bars', [])
     dates = [entry["t"] for entry in results]
     dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
@@ -103,10 +104,11 @@ def home():
         data["volume"] = f'{(selected_result["volume"] / 1000000):.2f}'
         
         today = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
-        yesterday = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%dT00:00:00Z')
+        yesterday = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%dT00:00:00Z')
         url = f"https://data.alpaca.markets/v2/stocks/{data['symbol']}/bars?timeframe=1D&start={yesterday}&end={today}&limit=1000&adjustment=raw&feed=iex&sort=asc"
         response = requests.get(url, headers=headers)
         results = response.json().get('bars', [])
+        print(results)
         data["price"] = f'{results[0]["c"]:.2f}'
         data["percent"] = f'{(((results[0]["c"] - results[0]["o"]) / results[1]["o"]) * 100):.2f}'
         data["high"] = f'{results[0]["h"]:.2f}'

@@ -133,7 +133,7 @@ form input, form button, .oauth-button, .redirect {
   border-radius: 5px;
 }
 
-form button, ,oauth-button, .redirect {
+form button, oauth-button, .redirect {
   background: #333;
   color: #fff;
   border: none;
