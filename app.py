@@ -3,7 +3,7 @@ import os, sqlite3, requests, plotly, random
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from dotenv import load_dotenv
-import json, websocket
+import json
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
@@ -108,7 +108,10 @@ def home():
         response = requests.get(url, headers=headers)
         results = response.json().get('bars', [])
         data["price"] = f'{results[0]["c"]:.2f}'
-        data["percent"] = f'{(((results[0]["c"] - results[0]["o"]) / results[1]["o"]) * 100):.2f}'
+        try:
+            data["percent"] = f'{((results[0]["c"] - results[0]["o"]) / results[0]["o"] * 100):.2f}'
+        except (IndexError, KeyError, ZeroDivisionError, TypeError):
+            data["percent"] = '0.00'
         data["high"] = f'{results[0]["h"]:.2f}'
         data["low"] = f'{results[0]["l"]:.2f}'
         
