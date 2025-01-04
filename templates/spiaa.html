@@ -71,11 +71,7 @@
     <script>
         const chartData = JSON.parse('{{ chart_data | safe }}');
         
-        const dates = chartData.map(data => {
-            let date = new Date(data.t);
-            date.setHours(date.getHours());
-            return date;
-        });
+        const dates = chartData.map(data => new Date(data.t));
         const open = chartData.map(data => data.o);
         const high = chartData.map(data => data.h);
         const low = chartData.map(data => data.l);
@@ -88,7 +84,7 @@
             high: high,
             increasing: {line: {color: '#3BA324'}},
             low: low,
-            open: open,
+            open: open, 
             type: 'candlestick',
             xaxis: 'x',
             yaxis: 'y'

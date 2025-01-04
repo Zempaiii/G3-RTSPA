@@ -46,6 +46,7 @@ def fetch_api_data(symbol):
     return response.json()
 
 def prepare_candle_plot(data, symbol):
+    print(data)
     results = data.get(symbol, [])
     dates = [entry["t"] for entry in results]
     dates = [datetime.fromtimestamp(ts / 1000) for ts in dates]
@@ -150,9 +151,11 @@ def spiaa():
     if data is None or 'bars' not in data:
         return jsonify({"error": "Failed to fetch data from API"}), 500
     
-    return render_template('spiaa.html', name=name, symbol=symbol, chart_data=json.dumps(data['bars']))
+    chart_data = prepare_candle_plot(data, symbol)
+    
+    return render_template('spiaa.html', name=name, symbol=symbol, chart_data=chart_data)
 
-@app.route('/set_stock')
+@app.route('/set_stock') 
 def set_stock():
     symbol = request.args.get('symbol', '').strip()
     name = request.args.get('name', '').strip()
