@@ -5,39 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RTSPA</title>
   <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-  <style>
-    nav {
-      z-index : 1100;
-    }
-    .nav-link {
-      margin-right: 20px;
-    }
-    #search {
-      width: 300px;
-      padding: 5px;
-      border-radius: 5px;
-    }
-    #suggestions {
-      position: absolute;
-      width: 300px;
-      max-height: 200px;
-      overflow-y: auto;
-      background-color: #efefef;
-    }
-    #suggestions:hover {
-      background-color: rgb(202, 255, 252)
-    }
-    #candleChart {
-      width: 100%;
-      height: 500px;
-      margin: 0 auto;
-    }
-  </style>
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+
 </head>
 <body>
   <nav class="navbar navbar-expand-md bg-dark py-3" data-bs-theme="dark">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="{{  url_for('home')}}">
+      <a class="navbar-brand d-flex align-items-center" href="{{  url_for('home')  }}">
         <span class="bs-icon-sm bs-icon-rounded bs-icon-primary d-flex justify-content-center align-items-center me-2 bs-icon">
         </span>
         <span>Real-Time Stock Price Analyis</span>
@@ -71,11 +45,11 @@
     <script>
         const chartData = JSON.parse('{{ chart_data | safe }}');
         
-        const dates = chartData.map(data => new Date(data.t));
-        const open = chartData.map(data => data.o);
-        const high = chartData.map(data => data.h);
-        const low = chartData.map(data => data.l);
-        const close = chartData.map(data => data.c);
+        const dates = chartData.data[0].x.map(date => new Date(date));
+        const open = chartData.data[0].open;
+        const high = chartData.data[0].high;
+        const low = chartData.data[0].low;
+        const close = chartData.data[0].close;
         
         const trace = {
             x: dates,

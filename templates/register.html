@@ -15,13 +15,13 @@
           <!-- Sign-In Form -->
           <form autocomplete="off" class="sign-in-form" method="POST">
             <div class="logo">
-              <h4>REAL-TIME STOCK PRICE ANALYZER</h4>
+              <h4>SWIFT STOCK</h4>
             </div>
 
             <div class="heading">
               <h2>Register!</h2>
               <h6>Already have an account?</h6>
-              <a href="login.html" class="toggle">Login!</a>
+              <a href="{{ url_for('login') }}" class="toggle">Login!</a>
             </div>
 
             <div class="actual-form">
@@ -123,9 +123,9 @@
         <!-- Carousel Section -->
         <div class="carousel">
           <div class="images-wrapper">
-            <img src="rts.png" class="image img-1 show" alt="" />
+            <img src="{{ url_for('static', filename='images/rts.png') }}" class="image img-1 show" alt="" />
             <img src="#" class="image img-2" alt="" />
-            <img src="./img/image3.png" class="image img-3" alt="" />
+            <img src="{{ url_for('static', filename='images/image3.png') }}" class="image img-3" alt="" />
           </div>
 
           <div class="text-slider">
@@ -147,7 +147,7 @@
       </div>
     </div>
   </main>
-  <script src="carousel.js"></script>
-  <script src="register.js"></script>
+  <script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 </body>
 </html>
