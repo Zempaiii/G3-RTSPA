@@ -4,6 +4,7 @@ from datetime import datetime
 import plotly.graph_objects as go
 from dotenv import load_dotenv
 import json
+from flask_socketio import SocketIO
 
 load_dotenv()
 app = Flask(__name__)
@@ -109,11 +110,13 @@ def home():
         
         url = f"https://data.alpaca.markets/v2/stocks/{data['symbol']}/bars/latest?feed=iex"
         response = requests.get(url, headers=headers)
-        latest_bar = response.json().get("bar", {})
-        data["high"] = f"{latest_bar['h']:.2f}"
-        data["low"] = f"{latest_bar['l']:.2f}"
-        data["volume"] = f"{(latest_bar['v'] / 1000):.2f}"
-            
+        results = response.json().get('bars', [])
+        data["price"] = f'{results[0]["c"]:.2f}'
+        data["percent"] = f'{(((results[0]["c"] - results[0]["o"]) / results[1]["o"]) * 100):.2f}'
+        data["high"] = f'{results[0]["h"]:.2f}'
+        data["low"] = f'{results[0]["l"]:.2f}'
+        
+    
     return render_template('index.html', stocks=symbol_data)
 
 # search suggestion backend    

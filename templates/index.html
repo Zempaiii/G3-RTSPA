@@ -79,6 +79,49 @@
     {% endfor %}
   </div>
 </div>
+<!-- Centered vertically long card for portfolio summary (Placeholder) -->
+<div class="row justify-content-center">
+  <div class="col-md-4 mb-3">
+      <div class="card">
+          <div class="card-body">
+              <h2 class="card-title">PORTFOLIO NAME</h2>
+              <hr>
+              <div class="d-flex justify-content-between mb-3">
+                  <div>
+                      <h4 class="mb-0">Current Value</h4>
+                      <span class="text-muted">10000000</span>
+                  </div>
+                  <div class="text-end">
+                      <h4 class="mb-0">Percent Change</h4>
+                      <span class="text-muted">0.01%</span>
+                  </div>
+              </div>
+              <div class="text-center mb-3">
+                  <div class="chart-placeholder" style="width: 100%; height: 150px; border: 1px solid #ccc; margin: 0 auto;"></div>
+              </div>
+              <hr>
+              <div class="mb-3">
+                  <h5 class="mb-0">Best Performing Stock</h5>
+                  <div class="d-flex justify-content-between">
+                      <span class="text-muted">MSFT</span>
+                      <span class="text-muted">Microsoft Inc.</span>
+                      <span class="text-muted">200%</span>
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <h5 class="mb-0">Worst Performing Stock</h5>
+                  <div class="d-flex justify-content-between">
+                      <span class="text-muted">TSLA</span>
+                      <span class="text-muted">Tesla Corp</span>
+                      <span class="text-muted">-200%</span>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+
+
 
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
