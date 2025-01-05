@@ -4,11 +4,9 @@ from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from dotenv import load_dotenv
 import json
-from flask_socketio import SocketIO
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Add a secret key for session management
-socketio = SocketIO(app)  # Initialize SocketIO
+app.secret_key = os.urandom(24)
 
 # search suggestion logic
 def search_stocks(query):
@@ -46,7 +44,6 @@ def fetch_api_data(symbol):
     return response.json()
 
 def prepare_candle_plot(data, symbol):
-    print(data)
     results = data.get('bars', [])
     dates = [entry["t"] for entry in results]
     dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
@@ -68,7 +65,8 @@ def prepare_candle_plot(data, symbol):
         xaxis_title="Date",
         yaxis_title="Price (USD)",
         xaxis_rangeslider_visible=True,
-        template="plotly_white"
+        template="plotly_white",
+        xaxis_type = "category"
     )
 
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -186,4 +184,4 @@ def set_stock():
     return jsonify({"message": "Stock set in session"}), 200
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    app.run(debug=True)
