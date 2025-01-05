@@ -9,12 +9,18 @@
 
 </head>
 <body>
-  <nav class="navbar navbar-expand-md bg-dark py-3" data-bs-theme="dark">
+  <nav class="navbar navbar-expand-md bg-dark py-2" data-bs-theme="dark">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="#">
-        <span class="bs-icon-sm bs-icon-rounded bs-icon-primary d-flex justify-content-center align-items-center me-2 bs-icon">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" 
+                 alt="Logo" 
+                 width="80" 
+                 height="80" 
+                 style="filter: invert(1); margin-right: 15px; border-radius: 75%;">
         </span>
-        <span><a id="homebtn" href="{{ url_for('home') }} ">Real-Time Stock Price Analysis</a></span>
+          
+          <span><a id="homebtn" href="{{ url_for('home') }} ">Real-Time Stock Price Analysis</a></span>
       </a>
       <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5">
         <span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span>
