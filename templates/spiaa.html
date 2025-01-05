@@ -44,38 +44,7 @@
     <script>
         const chartData = JSON.parse('{{ chart_data | safe }}');
         
-        const dates = chartData.map(data => new Date(data.t));
-        const open = chartData.map(data => data.o);
-        const high = chartData.map(data => data.h);
-        const low = chartData.map(data => data.l);
-        const close = chartData.map(data => data.c);
-        
-        const trace = {
-            x: dates,
-            close: close,
-            decreasing: {line: {color: '#A32424'}},
-            high: high,
-            increasing: {line: {color: '#3BA324'}},
-            low: low,
-            open: open, 
-            type: 'candlestick',
-            xaxis: 'x',
-            yaxis: 'y'
-        };
-        
-        const data = [trace];
-        
-        const layout = {
-            dragmode: 'zoom',
-            showlegend: false,
-            xaxis: {
-                rangeslider: {
-                    visible: false
-                }
-            }
-        };
-        
-        Plotly.newPlot('candleChart', data, layout, {responsive: true});
+        Plotly.newPlot('candleChart', chartData, {});
     </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
