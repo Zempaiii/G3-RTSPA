@@ -36,17 +36,3 @@ search_bar.addEventListener("input", async () => {
     suggestions.innerHTML = `<div id="no-results">No results found</div>`;
   }
 });
-
-
-const percent = document.getElementById('percent');
-
-// Check if the value of the element has a negative sign
-Array.from(percent).forEach(element => {
-  const value = parseFloat(element.innerText);
-  if (value < 0) {
-    element.style.color = "#FF0000";
-  }
-  else {
-    element.style.color = "#00FF00";
-  }
-});
