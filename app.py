@@ -73,6 +73,22 @@ def prepare_candle_plot(data, symbol):
 
 # homepage backend
 @app.route('/')
+def start():
+    return login()
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
+@app.route('/forgot')
+def forgot():
+    return render_template('forgot.html')
+
+@app.route('/home')
 def home():
     headers = {
             "accept": "application/json",
