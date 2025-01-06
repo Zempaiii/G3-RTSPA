@@ -3,3 +3,4 @@ python-dotenv
 requests
 plotly
 flask-socketio
+uwsgi

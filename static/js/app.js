@@ -36,3 +36,4 @@ search_bar.addEventListener("input", async () => {
     suggestions.innerHTML = `<div id="no-results">No results found</div>`;
   }
 });
+
