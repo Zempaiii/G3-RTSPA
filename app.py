@@ -10,6 +10,8 @@ import json
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
+
+
 # search suggestion logic
 def search_stocks(query):
     conn = sqlite3.connect('tickers.db')
@@ -251,7 +253,7 @@ def home():
         
         today = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
         yesterday = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%dT00:00:00Z')
-        url = f"https://data.alpaca.markets/v2/stocks/{data['symbol']}/bars?timeframe=1D&start={yesterday}&end={today}&limit=1000&adjustment=raw&feed=iex&sort=asc"
+        url = f"https://data.alpaca.markets/v2/stocks/{data['symbol']}/bars?timeframe=5T&start={yesterday}&end={today}&limit=1000&adjustment=raw&feed=iex&sort=asc"
         response = requests.get(url, headers=headers)
         results = response.json().get('bars', [])
         print(results)
