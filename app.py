@@ -10,8 +10,6 @@ import json
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-
-
 # search suggestion logic
 def search_stocks(query):
     conn = sqlite3.connect('tickers.db')
@@ -148,7 +146,7 @@ def validate_email():
             conn = sqlite3.connect('tickers.db')
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO users (email, password, name) VALUES (?, ?, ?)",
+                "INSERT INTO users (email, password, username) VALUES (?, ?, ?)",
                 (email, password, name)
             )
             conn.commit()
