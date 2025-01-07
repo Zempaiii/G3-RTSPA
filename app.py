@@ -17,6 +17,23 @@ def check_login():
         return login()
     return None
 
+def send_verification_email(email,code):
+    load_dotenv()
+    mail_server = os.getenv('MAIL_SERVER')
+    mail_port = os.getenv('MAIL_PORT')
+    mail_username = os.getenv('MAIL_USERNAME')
+    mail_password = os.getenv('MAIL_PASSWORD')
+
+    msg = MIMEText(f'Your verification code is: {code}')
+    msg['Subject'] = 'SwiftStock Verification Code'
+    msg['From'] = mail_username
+    msg['To'] = email
+
+    with smtplib.SMTP(mail_server, mail_port) as server:
+        server.starttls()
+        server.login(mail_username, mail_password)
+        server.sendmail(mail_username, email, msg.as_string())
+
 # search suggestion logic
 def search_stocks(query):
     conn = sqlite3.connect('tickers.db')
@@ -113,48 +130,34 @@ def is_valid_email(email):
     regex = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$'
     return re.match(regex, email)
 
-@app.route('/register', methods=['GET' , 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']
         email = request.form['email']
         confirm_email = request.form['confirm_email']
-
-        if not is_valid_email(email):
-            flash('Invalid email format')
-            return render_template('register.html')
+        password = request.form['password']
 
         if email != confirm_email:
-            flash('Emails do not match')
-            return render_template('register.html')
+            return jsonify({"success": False, "message": "Emails do not match."})
+
+        if not is_valid_email(email):
+            return jsonify({"success": False, "message": "Invalid email format."})
 
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
+
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         if cursor.fetchone():
-            flash('Email already registered')
-            return render_template('register.html')
-        
-        # Send validation email using Mailtrap
-        msg = MIMEText('Please validate your email')
-        msg['Subject'] = 'Email Validation'
-        msg['From'] = 'swiiftstock@gmail.com'
-        msg['To'] = email
+            conn.close()
+            return jsonify({"success": False, "message": "Email already registered."})
 
-        with smtplib.SMTP('smtp.mailtrap.io', 2525) as server:
-            server.login('your_mailtrap_username', 'your_mailtrap_password')
-            server.sendmail(msg['From'], [msg['To']], msg.as_string())
-
-        # Add user to database
         hashed_password = generate_password_hash(password)
         cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_password))
         conn.commit()
         conn.close()
 
-        flash('Registration successful, please check your email for validation')
-        return redirect(url_for('login'))
-    
+        return jsonify({"success": True, "message": "Registration successful!"})
     return render_template('register.html')
 
 
@@ -162,30 +165,39 @@ def register():
 def forgot():
     if request.method == 'POST':
         email = request.form['email']
-
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
         conn.close()
 
-        if user:
-            # Send verification email using Mailtrap
-            msg = MIMEText('Please validate your email to reset your password')
-            msg['Subject'] = 'Password Reset'
-            msg['From'] = 'your-email@example.com'
-            msg['To'] = email
+        if not user:
+            return jsonify({"success": False, "message": "Email not registered."})
 
-            with smtplib.SMTP('smtp.mailtrap.io', 2525) as server:
-                server.login('your_mailtrap_username', 'your_mailtrap_password')
-                server.sendmail(msg['From'], [msg['To']], msg.as_string())
+        verification_code = str(random.randint(100000, 999999))
+        session['verification_code'] = verification_code
+        session['reset_email'] = email
+        send_verification_email(email, verification_code)
+        return jsonify({"success": True, "message": "Verification code sent to email."})
 
-            flash('Verification email sent, please check your email')
-            return redirect(url_for('login'))
-        else:
-            flash('No account found with that email')
-            return render_template('forgot.html')
-        
+    if request.method == 'GET':
+        code = request.args.get('code')
+        new_password = request.args.get('new_password')
+
+        if code and new_password:
+            if code == session.get('verification_code'):
+                email = session.get('reset_email')
+                hashed_password = generate_password_hash(new_password)
+                conn = sqlite3.connect('tickers.db')
+                cursor = conn.cursor()
+                cursor.execute("UPDATE users SET password = ? WHERE email = ?", (hashed_password, email))
+                conn.commit()
+                conn.close()
+                session.pop('verification_code', None)
+                session.pop('reset_email', None)
+                return jsonify({"success": True, "message": "Password reset successful."})
+            else:
+                return jsonify({"success": False, "message": "Invalid verification code."})
     return render_template('forgot.html')
 
 @app.route('/home')
