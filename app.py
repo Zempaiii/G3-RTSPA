@@ -289,17 +289,17 @@ def spiaa():
     cursor.execute(command)
     result = cursor.fetchone()
     
-    command = """
-        SELECT stocks_owned FROM portfolios
-        JOIN users, tickers
-        ON portfolios.user_id = users.user_id
-        AND portfolios.symbol = tickers.symbol
-        WHERE username = ?
-        AND symbol = ?
-        """
-    cursor.execute(command, (session['username'], result[0]))
-    owned = cursor.fetchall()
-    owned = sum(x for x in owned)
+    # command = """
+    #     SELECT stocks_owned FROM portfolios
+    #     JOIN users, tickers
+    #     ON portfolios.user_id = users.user_id
+    #     AND portfolios.symbol = tickers.symbol
+    #     WHERE users.username = ?
+    #     AND tickers.symbol = ?
+    #     """
+    # cursor.execute(command, (session['username'], result[0]))
+    # owned = cursor.fetchall()
+    # owned = sum(x for x in owned)
     conn.close()
 
     if result:
@@ -313,13 +313,13 @@ def spiaa():
     
     data = fetch_api_data(symbol, '1Y') # for fetching first 3 analysis
     analysis = list()
-    analysis.append(owned) #stocks owned
+    # analysis.append(owned) #stocks owned
     results = data.get('bars', [])
     
     #Price analysis
     analysis.append(results[0]['c'])
-    analysis.append(f'{results[0]['l']:.2f} - {results[0]['h']:.2f}')
-    analysis.append(f'{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}')
+    analysis.append(f'{results[0]["l"]:.2f} - {results[0]["h"]:.2f}')
+    analysis.append(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
     
     #Trend indicators
     
