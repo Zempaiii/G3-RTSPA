@@ -276,6 +276,18 @@ def spiaa():
         """
     cursor.execute(command)
     result = cursor.fetchone()
+    
+    command = """
+        SELECT stocks_owned FROM portfolios
+        JOIN users, tickers
+        ON portfolios.user_id = users.user_id
+        AND portfolios.symbol = tickers.symbol
+        WHERE username = ?
+        AND symbol = ?
+        """
+    cursor.execute(command, (session['username'], result[0]))
+    owned = cursor.fetchall()
+    owned = sum(x for x in owned)
     conn.close()
 
     if result:
@@ -286,14 +298,29 @@ def spiaa():
     symbol = session.get('symbol', '').strip()
     name = session.get('name', '').strip()
     
-    data = fetch_api_data(symbol, timeframe)
     
-    if data is None or 'bars' not in data:
-        return jsonify({"error": "Failed to fetch data from API"}), 500
+    data = fetch_api_data(symbol, '1Y') # for fetching first 3 analysis
+    analysis = list()
+    analysis.append(owned) #stocks owned
+    results = data.get('bars', [])
     
+    #Price analysis
+    analysis.append(results[0]['c'])
+    analysis.append(f'{results[0]['l']:.2f} - {results[0]['h']:.2f}')
+    analysis.append(f'{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}')
+    
+    #Trend indicators
+    
+    #Risk and volatility
+    
+    #Valuation
+    
+    #Support and resistance
+    
+    data = fetch_api_data(symbol, timeframe)   
     chart_data = prepare_candle_plot(data, symbol)
     
-
+    
     
     return render_template('spiaalatest.html', name=name, symbol=symbol, chart_data=chart_data)
 
