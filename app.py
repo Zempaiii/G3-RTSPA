@@ -2,6 +2,7 @@ from flask import request, jsonify, Flask, render_template, session, redirect, u
 import os, sqlite3, requests, plotly, random, smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
+from werkzeug.security import generate_password_hash, check_password_hash
 import re
 import plotly.graph_objects as go
 from dotenv import load_dotenv
@@ -73,151 +74,128 @@ def prepare_candle_plot(data, symbol):
 
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
+def init_db():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        token TEXT
+    )''')
+    conn.commit()
+    conn.close()
+
+def send_email(recipient, subject, body):
+    smtp_host = "smtp.mailtrap.io"
+    smtp_port = 587
+    username = os.getenv("MAILTRAP_USER")
+    password = os.getenv("MAILTRAP_PASSWORD")
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = "swiifstock@gmail.com"
+    msg["To"] = recipient
+
+    with smtplib.SMTP(smtp_host, smtp_port) as server:
+        server.login(username, password)
+        server.sendmail("swiifstock@gmail.com", recipient, msg.as_string())
+
 # homepage backend
 @app.route('/')
 def start():
     return login()
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not email or not password:
+            return jsonify({"error": "All fields are required"}), 400
+
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT password FROM users WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        conn.close()
+
+        if user and check_password_hash(user[0], password):
+            session['email'] = email
+            return redirect(url_for('login'))
+        else:
+            return jsonify({"error": "Invalid credentials"}), 401
+
     return render_template('login.html')
 
 @app.route('/register', methods=['GET' , 'POST'])
 def register():
     if request.method == 'POST':
-        # Collect form data
         email = request.form.get('email')
         confirm_email = request.form.get('confirm_email')
         password = request.form.get('password')
-        name = request.form.get('name')
 
-        # Check if all fields are filled
-        if not email or not confirm_email or not password or not name:
-            flash('All fields are required.', 'danger')
-            return redirect(url_for('register'))
+        # Validate inputs
+        if not email or not confirm_email or not password:
+            return jsonify({"error": "All fields are required"}), 400
 
-        # Validate email format
-        email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_regex, email):
-            flash('Invalid email format.', 'danger')
-            return redirect(url_for('register'))
+            return jsonify({"error": "Invalid email format"}), 400
 
-        # Confirm email matches
         if email != confirm_email:
-            flash('Emails do not match.', 'danger')
-            return redirect(url_for('register'))
+            return jsonify({"error": "Emails do not match"}), 400
 
-        # Check if email already exists in the database
-        conn = sqlite3.connect('tickers.db')
+        # Check if email exists
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        if user:
+            conn.close()
+            return jsonify({"error": "Email already registered"}), 400
+
+        # Insert user into database
+        hashed_password = generate_password_hash(password)
+        cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, hashed_password))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Registration successful"}), 200
+    return render_template('register.html')
+
+
+@app.route('/forgot', methods=['GET', 'POST'])
+def forgot():
+    if request.method == 'POST':
+        email = request.form.get('email')
+
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+
+        conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
         conn.close()
 
         if user:
-            flash('Email is already registered.', 'danger')
-            return redirect(url_for('register'))
+            token = os.urandom(16).hex()
+            reset_link = f"http://localhost:5000/reset_password?token={token}"
 
-        # Send validation email via Mailtrap
-        validation_token = os.urandom(24).hex()
-        session['validation_token'] = validation_token
-        session['email'] = email
-
-        try:
-            send_validation_email(email, validation_token)
-            flash('A validation email has been sent. Please check your inbox.', 'success')
-            return redirect(url_for('validate_email'))
-        except Exception as e:
-            flash(f'Failed to send validation email: {e}', 'danger')
-            return redirect(url_for('register'))
-        
-    return render_template('register.html')
-
-@app.route('/validate_email', methods=['GET', 'POST'])
-def validate_email():
-    if request.method == 'POST':
-        token = request.form.get('token')
-        if token == session.get('validation_token'):
-            # Save user to the database
-            email = session.pop('email', None)
-            password = request.form.get('password')  # Add password hashing
-            name = request.form.get('name')
-
-            conn = sqlite3.connect('tickers.db')
+            # Update token in database
+            conn = sqlite3.connect('users.db')
             cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO users (email, password, name) VALUES (?, ?, ?)",
-                (email, password, name)
-            )
+            cursor.execute("UPDATE users SET token = ? WHERE email = ?", (token, email))
             conn.commit()
             conn.close()
 
-            flash('Registration successful. You can now log in.', 'success')
-            return redirect(url_for('login'))
+            send_email(email, "Password Reset", f"Click the link to reset your password: {reset_link}")
+            return jsonify({"message": "Reset email sent"}), 200
         else:
-            flash('Invalid validation token.', 'danger')
+            return jsonify({"error": "Account not found"}), 404
 
-    return render_template('validate_email.html')
-
-def send_validation_email(email, token):
-    """Send validation email using Mailtrap."""
-    smtp_server = "smtp.mailtrap.io"
-    smtp_port = 587
-    smtp_user = "your_mailtrap_username"
-    smtp_password = "your_mailtrap_password"
-
-    subject = "Validate your email"
-    body = f"Your validation token is: {token}"
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = "swiiftstock@gmail.com"
-    msg['To'] = email
-
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.login(smtp_user, smtp_password)
-        server.sendmail(msg['From'], [msg['To']], msg.as_string())
-
-# Search suggestion logic (remains the same)
-def search_stocks(query):
-    conn = sqlite3.connect('tickers.db')
-    cursor = conn.cursor()
-    
-    command = """
-            SELECT Symbol, Name FROM tickers
-            WHERE symbol LIKE ? OR Name LIKE ?
-            LIMIT 15
-            """
-    cursor.execute(command, (f'%{query}%', f'%{query}%'))
-    
-    results = cursor.fetchall()
-    conn.close()
-    
-    results_dict = [{'Symbol': symbol, 'Name': name} for symbol, name in results]
-    results_dict.sort(key=lambda x: (query.lower() not in x['Symbol'].lower(), query.lower() not in x['Name'].lower()))
-    return results_dict
-
-# Add database table for users if it doesn't exist
-def create_users_table():
-    conn = sqlite3.connect('tickers.db')
-    cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        name TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    """)
-    conn.commit()
-    conn.close()
-
-# Call the function to create the table when the app starts
-create_users_table()
-
-
-@app.route('/forgot')
-def forgot():
     return render_template('forgot.html')
 
 @app.route('/home')
