@@ -1,8 +1,9 @@
 from flask import request, jsonify, Flask, render_template, session, redirect, url_for
-import os, sqlite3, requests, plotly, random, smtplib
+import os, sqlite3, requests, plotly, random
+import smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 import re
 import plotly.graph_objects as go
 from dotenv import load_dotenv
@@ -74,33 +75,6 @@ def prepare_candle_plot(data, symbol):
 
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-def init_db():
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-        token TEXT
-    )''')
-    conn.commit()
-    conn.close()
-
-def send_email(recipient, subject, body):
-    smtp_host = "smtp.mailtrap.io"
-    smtp_port = 587
-    username = os.getenv("MAILTRAP_USER")
-    password = os.getenv("MAILTRAP_PASSWORD")
-
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = "swiifstock@gmail.com"
-    msg["To"] = recipient
-
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.login(username, password)
-        server.sendmail("swiifstock@gmail.com", recipient, msg.as_string())
-
 # homepage backend
 @app.route('/')
 def start():
@@ -109,93 +83,100 @@ def start():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        username = request.form['username']
+        password = request.form['password']
 
-        if not email or not password:
-            return jsonify({"error": "All fields are required"}), 400
-
-        conn = sqlite3.connect('users.db')
+        conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT password FROM users WHERE email = ?", (email,))
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()
         conn.close()
 
-        if user and check_password_hash(user[0], password):
-            session['email'] = email
-            return redirect(url_for('login'))
+        if user and check_password_hash(user[3], password):
+            session['user_id'] = user[0]
+            return redirect(url_for('home'))
         else:
-            return jsonify({"error": "Invalid credentials"}), 401
-
+            flash('Invalid credentials')
+            return render_template('login.html')
     return render_template('login.html')
+
+def is_valid_email(email):
+    regex = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$'
+    return re.match(regex, email)
 
 @app.route('/register', methods=['GET' , 'POST'])
 def register():
     if request.method == 'POST':
-        email = request.form.get('email')
-        confirm_email = request.form.get('confirm_email')
-        password = request.form.get('password')
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        confirm_email = request.form['confirm_email']
 
-        # Validate inputs
-        if not email or not confirm_email or not password:
-            return jsonify({"error": "All fields are required"}), 400
-
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, email):
-            return jsonify({"error": "Invalid email format"}), 400
+        if not is_valid_email(email):
+            flash('Invalid email format')
+            return render_template('register.html')
 
         if email != confirm_email:
-            return jsonify({"error": "Emails do not match"}), 400
+            flash('Emails do not match')
+            return render_template('register.html')
 
-        # Check if email exists
-        conn = sqlite3.connect('users.db')
+        conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
-        user = cursor.fetchone()
-        if user:
-            conn.close()
-            return jsonify({"error": "Email already registered"}), 400
+        if cursor.fetchone():
+            flash('Email already registered')
+            return render_template('register.html')
+        
+        # Send validation email using Mailtrap
+        msg = MIMEText('Please validate your email')
+        msg['Subject'] = 'Email Validation'
+        msg['From'] = 'swiiftstock@gmail.com'
+        msg['To'] = email
 
-        # Insert user into database
+        with smtplib.SMTP('smtp.mailtrap.io', 2525) as server:
+            server.login('your_mailtrap_username', 'your_mailtrap_password')
+            server.sendmail(msg['From'], [msg['To']], msg.as_string())
+
+        # Add user to database
         hashed_password = generate_password_hash(password)
-        cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, hashed_password))
+        cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_password))
         conn.commit()
         conn.close()
 
-        return jsonify({"message": "Registration successful"}), 200
+        flash('Registration successful, please check your email for validation')
+        return redirect(url_for('login'))
+    
     return render_template('register.html')
 
 
 @app.route('/forgot', methods=['GET', 'POST'])
 def forgot():
     if request.method == 'POST':
-        email = request.form.get('email')
+        email = request.form['email']
 
-        if not email:
-            return jsonify({"error": "Email is required"}), 400
-
-        conn = sqlite3.connect('users.db')
+        conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
         conn.close()
 
         if user:
-            token = os.urandom(16).hex()
-            reset_link = f"http://localhost:5000/reset_password?token={token}"
+            # Send verification email using Mailtrap
+            msg = MIMEText('Please validate your email to reset your password')
+            msg['Subject'] = 'Password Reset'
+            msg['From'] = 'your-email@example.com'
+            msg['To'] = email
 
-            # Update token in database
-            conn = sqlite3.connect('users.db')
-            cursor = conn.cursor()
-            cursor.execute("UPDATE users SET token = ? WHERE email = ?", (token, email))
-            conn.commit()
-            conn.close()
+            with smtplib.SMTP('smtp.mailtrap.io', 2525) as server:
+                server.login('your_mailtrap_username', 'your_mailtrap_password')
+                server.sendmail(msg['From'], [msg['To']], msg.as_string())
 
-            send_email(email, "Password Reset", f"Click the link to reset your password: {reset_link}")
-            return jsonify({"message": "Reset email sent"}), 200
+            flash('Verification email sent, please check your email')
+            return redirect(url_for('login'))
         else:
-            return jsonify({"error": "Account not found"}), 404
-
+            flash('No account found with that email')
+            return render_template('forgot.html')
+        
     return render_template('forgot.html')
 
 @app.route('/home')
