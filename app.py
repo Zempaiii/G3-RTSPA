@@ -37,10 +37,13 @@ def search_stocks(query):
     return results_dict
 
 # api fetching logic
-def fetch_api_data(symbol):
+def fetch_api_data(symbol, timeframe):
+    day = {'1W': [7, '5T'], '1M': [30, '1H'], '1Y': [365, '1D'], '5Y': [1825, '1W']}
+    day = day.get(timeframe)
     end = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
-    start = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%dT00:00:00Z')
-    url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe=5T&start={start}&end={end}&limit=1000&adjustment=raw&feed=iex&sort=asc"
+    start = (datetime.now() - timedelta(days=day[0])).strftime('%Y-%m-%dT00:00:00Z')
+    url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe={day[1]}&start={start}&end={end}&limit=1000&adjustment=raw&feed=iex&sort=asc"
+    print(day)
     headers = {
         "accept": "application/json",
         "APCA-API-KEY-ID": "PK9XXY01BXT1F6L9EFZ4",
@@ -87,7 +90,7 @@ def start():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
+    if request.method == 'POST' and 'email' in request.form and 'password' in request.form:
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
 
@@ -250,9 +253,20 @@ def remove_stocks():
     return render_template('removes.html')
 
 # retrieving graph data from API
-@app.route('/spiaa')
+@app.route('/spiaa', methods=['GET', 'POST'])
 def spiaa():
     check_login()
+    if request.method == 'POST' and 'timeframe' in request.form:
+        timeframe = request.form.get('timeframe')
+        print(timeframe)
+        if timeframe:
+            os.system('cls')
+            print("timeframe", timeframe)
+        else:
+            timeframe = '1W'
+    else:
+        timeframe = '1W'
+        
     conn = sqlite3.connect('tickers.db')
     cursor = conn.cursor()
 
@@ -272,13 +286,16 @@ def spiaa():
     symbol = session.get('symbol', '').strip()
     name = session.get('name', '').strip()
     
-    data = fetch_api_data(symbol) 
+    data = fetch_api_data(symbol, timeframe)
+    
     if data is None or 'bars' not in data:
         return jsonify({"error": "Failed to fetch data from API"}), 500
     
     chart_data = prepare_candle_plot(data, symbol)
     
-    return render_template('spiaa.html', name=name, symbol=symbol, chart_data=chart_data)
+
+    
+    return render_template('spiaalatest.html', name=name, symbol=symbol, chart_data=chart_data)
 
 @app.route('/set_stock') 
 def set_stock():
