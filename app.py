@@ -322,14 +322,14 @@ def spiaa():
     analysis.append(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
     
     #Trend indicators
-    
+    data = fetch_api_data(symbol, timeframe)
     #Risk and volatility
     
     #Valuation
     
     #Support and resistance
     
-    data = fetch_api_data(symbol, timeframe)   
+       
     chart_data = prepare_candle_plot(data, symbol)
     
     
