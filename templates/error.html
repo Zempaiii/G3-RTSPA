@@ -6,7 +6,6 @@
   <title>SwiftStock - Error!</title>
   <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-
 </head>
 <body>
   <nav class="navbar navbar-expand-md bg-dark py-2" data-bs-theme="dark">
@@ -41,7 +40,10 @@
     </div>
   </nav>
 <body>
-    <h1>Error</h1>
+  <div style="height: 50px;"></div>
+  <center>
+    <h1><strong>Error!</strong></h1>
     <p>{{ error_message }}</p>
+  </center>
 </body>
 </html>

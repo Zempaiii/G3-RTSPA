@@ -2,26 +2,30 @@ document.querySelector(".sign-in-form").addEventListener("submit", function(even
     event.preventDefault(); // Prevent form from submitting
 
     // Get the input values
-    const username = document.querySelector(".sign-in-form input[type='text']").value;
-    const password = document.querySelector(".sign-in-form input[type='password']").value;
+    const email = document.querySelector(".sign-in-form input[name='email']").value;
+    const password = document.querySelector(".sign-in-form input[name='password']").value;
 
-    // Example credentials (for testing lang toh)
-    const users = [
-        { username: "user1", password: "password123" },
-        { username: "user2", password: "password456" }
-    ];
+    // Create form data
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
 
-    // Checking if the username exists
-    const user = users.find(user => user.username === username);
-
-    // If user exists, check password
-    if (user && user.password === password) {
-        alert("Login successful!");
-        // Redirect na dapat sa main/homepage
-        window.location.href = ".html"; 
-    } else if (user) {
-        alert("Incorrect password.");
-    } else {
-        alert("Username does not exist.");
-    }
+    // Send login request to the server
+    fetch('/login', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Login successful!");
+            window.location.href = "/home";
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("An error occurred. Please try again.");
+    });
 });

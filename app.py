@@ -1,9 +1,9 @@
-from flask import request, jsonify, Flask, render_template, session, redirect, url_for
+from flask import request, jsonify, Flask, render_template, session, redirect, url_for, flash
 import os, sqlite3, requests, plotly, random
 import smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 import re
 import plotly.graph_objects as go
 from dotenv import load_dotenv
@@ -11,6 +11,11 @@ import json
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+def check_login():
+    if 'username' not in session:
+        return login()
+    return None
 
 # search suggestion logic
 def search_stocks(query):
@@ -78,26 +83,27 @@ def prepare_candle_plot(data, symbol):
 # homepage backend
 @app.route('/')
 def start():
-    return login()
+    return check_login()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+
+        email = request.form['email']
+        password = request.form['password']
+        
+        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
         conn.close()
 
-        if user and check_password_hash(user[3], password):
-            session['user_id'] = user[0]
-            return redirect(url_for('home'))
+        if user and check_password_hash(generate_password_hash(user[2]), password):
+            session['username'] = user[1]
+            return jsonify({"success": True, "message": "Login successful"})
         else:
-            flash('Invalid credentials')
-            return render_template('login.html')
+            return jsonify({"success": False, "message": "Invalid email or password"})
+        
     return render_template('login.html')
 
 def is_valid_email(email):
@@ -181,6 +187,7 @@ def forgot():
 
 @app.route('/home')
 def home():
+    check_login()
     headers = {
             "accept": "application/json",
             "APCA-API-KEY-ID": "PK9XXY01BXT1F6L9EFZ4",
@@ -209,11 +216,10 @@ def home():
         data["volume"] = f'{(selected_result["volume"] / 1000000):.2f}'
         
         today = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
-        yesterday = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%dT00:00:00Z')
+        yesterday = (datetime.now() - timedelta(days=14)).strftime('%Y-%m-%dT00:00:00Z')
         url = f"https://data.alpaca.markets/v2/stocks/{data['symbol']}/bars?timeframe=5T&start={yesterday}&end={today}&limit=1000&adjustment=raw&feed=iex&sort=asc"
         response = requests.get(url, headers=headers)
         results = response.json().get('bars', [])
-        print(results)
         data["price"] = f'{results[0]["c"]:.2f}'
         data["percent"] = f'{(((results[0]["c"] - results[0]["o"]) / results[1]["o"]) * 100):.2f}'
         data["high"] = f'{results[0]["h"]:.2f}'
@@ -246,6 +252,7 @@ def remove_stocks():
 # retrieving graph data from API
 @app.route('/spiaa')
 def spiaa():
+    check_login()
     conn = sqlite3.connect('tickers.db')
     cursor = conn.cursor()
 
@@ -289,6 +296,10 @@ def set_stock():
     conn.close()
     session['symbol'], session['name'] = symbol, name
     return jsonify({"message": "Stock set in session"}), 200
+
+@app.errorhandler(Exception)
+def handle_errors(e):
+    return render_template('error.html', error_message=e), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
