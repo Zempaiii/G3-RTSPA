@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwiftStock - Stock Price Analysis ({{name}})</title>
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+  <style>
+    /* Ensure the chart container takes full width and height of its parent */
+    #candleChart {
+      width: 100%;
+      height: 400px; /* Adjust the height as needed */
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-md bg-dark py-2" data-bs-theme="dark">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
+          <img src="{{ url_for('static', filename='images/logo.svg') }}" 
+               alt="Logo" 
+               width="80" 
+               height="80" 
+               style="filter: invert(1); margin-right: 15px; border-radius: 75%;">
+        </span>
+      </a>
+      <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5">
+        <span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navcol-5">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('add_stocks') }}">Portfolios</a></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <div style="position: relative;">
+              <input type="text" id="search" placeholder="Search Stocks">
+              <div id="suggestions" style="background-color:#eee;"></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div id="main_info" style="margin-top: 1rem">
+    <h1 id="company_name"><strong>{{name}}</strong> ({{symbol}})</h1>      
+  </div>
+  <div id="candle_graph" class="container-fluid" style="margin-top: 1rem;">
+    <div id="candleChart"></div>
+  </div>
+  <!-- Timeframe Buttons -->
+  <div class="container text-center mt-3">
+    <div class="btn-group" role="group" aria-label="Timeframe buttons">
+      <button type="button" class="btn btn-outline-primary" onclick="updateChart('1W')">1W</button>
+      <button type="button" class="btn btn-outline-primary" onclick="updateChart('1M')">1M</button>
+      <button type="button" class="btn btn-outline-primary" onclick="updateChart('1Y')">1Y</button>
+      <button type="button" class="btn btn-outline-primary" onclick="updateChart('5Y')">5Y</button>
+    </div>
+  </div>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    const chartData = JSON.parse('{{ chart_data | safe }}');
+
+    // Function to resize the chart on window resize
+    function resizeChart() {
+      Plotly.relayout('candleChart', {
+        'xaxis.autorange': true,
+        'yaxis.autorange': true
+      });
+    }
+
+    // Initialize the chart
+    Plotly.newPlot('candleChart', chartData, {});
+    window.addEventListener('resize', resizeChart);
+    resizeChart(); // Initial call to ensure the chart is properly sized
+
+    function updateChart(timeframe) {
+      console.log(`Selected timeframe: ${timeframe}`);
+      // Example: Update chart data based on the selected timeframe
+      // Mock data update - Replace with actual data fetching logic
+      const mockData = {
+        '1W': chartData, // Replace with actual 1-week data
+        '1M': chartData, // Replace with actual 1-month data
+        '1Y': chartData, // Replace with actual 1-year data
+        '5Y': chartData  // Replace with actual 5-year data
+      };
+      
+      const newChartData = mockData[timeframe] || chartData; // Use fallback data
+      Plotly.react('candleChart', newChartData.data, newChartData.layout);
+    }
+  </script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
