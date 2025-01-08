@@ -343,14 +343,9 @@ def create_app():
         return jsonify(matches)
 
     # to be removed
-    @app.route('/add')
-    def add_stocks():
+    @app.route('/stock_monitoring')
+    def stock_monitoring():
         return render_template('portfolios.html')
-
-    # to be removed
-    @app.route('/remove')
-    def remove_stocks():
-        return render_template('removes.html')
 
     # retrieving graph data from API
     @app.route('/spiaa', methods=['GET', 'POST'])
