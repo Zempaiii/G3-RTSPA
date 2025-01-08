@@ -4,3 +4,4 @@ requests
 plotly
 flask-socketio
 uwsgi
+flask-mailman

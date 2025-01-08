@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SwiftStock - Register</title>
+  <title>SwiftStock - Verification</title>
   <link rel="stylesheet" href="{{  url_for('static', filename='css/style.css')}}" />
 </head>
 <body>
@@ -19,65 +19,25 @@
             </div>
 
             <div class="heading">
-              <h2>Register!</h2>
-              <h6>Already have an account?</h6>
-              <a href="{{ url_for('login') }}" class="toggle">Login!</a>
+              <h2>Verification</h2>
+              <h4>Check the verification code that is sent in your email</h4>
             </div>
 
             <div class="actual-form">
               <div class="input-wrap">
                 <input
                   type="text"
-                  id="username"
-                  name="username"
+                  id="code"
+                  name="code"
                   minlength="4"
                   class="input-field"
                   autocomplete="off"
-                  placeholder="Enter Username"
+                  placeholder="Enter Verification Code"
                   required
                 />
               </div>
 
-              <div class="input-wrap">
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  minlength="8"
-                  class="input-field"
-                  autocomplete="off"
-                  placeholder="Enter Password"
-                  required
-                />
-              </div>
-
-              <div class="input-wrap">
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  minlength="5"
-                  class="input-field"
-                  autocomplete="off"
-                  placeholder="Enter Email"
-                  required
-                />
-              </div>
-
-              <div class="input-wrap">
-                <input
-                  type="email"
-                  id="confirm"
-                  name="confirm"
-                  minlength="5"
-                  class="input-field"
-                  autocomplete="off"
-                  placeholder="Confirm Email"
-                  required
-                />
-              </div>
-
-              <input type="submit" value="Register" class="sign-btn-1" id="registerButton" />
+              <input type="submit" value="Submit" class="sign-btn-1" id="submitbutton" />
 
             </div>
           </form>
@@ -111,6 +71,6 @@
     </div>
   </main>
   <script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/verify.js') }}"></script>
 </body>
 </html>
