@@ -13,9 +13,10 @@
       <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
         <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
           <img src="{{ url_for('static', filename='images/logo.svg') }}" 
-              alt="Logo" 
-              class="logo-img"
-              style="filter: invert(1) brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);">
+               alt="Logo" 
+               width="80" 
+               height="80" 
+               style="filter: invert(1); margin-right: 15px; border-radius: 75%;">
         </span>
       </a>
       <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5">
@@ -24,7 +25,7 @@
       <div class="collapse navbar-collapse" id="navcol-5">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('stock_monitoring') }}">Portfolios</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('stock_monitoring') }}">Stock Monitoring</a></li>
         </ul>
         <ul class="navbar-nav">
           <li class="nav-item">
@@ -62,13 +63,6 @@
       <div class="col-md-8 d-flex justify-content-center" style="margin-top: -1rem;">
         <div id="stock_details" class="card w-100">
           <div class="card-body">
-            <button class="btn btn-primary" onclick="monitorStock()">Monitor This Stock</button>
-            <script>
-              function monitorStock() {
-              alert('You are now monitoring this stock.');
-              // Add your monitoring logic here
-              }
-            </script>
             <ul class="list-group list-group-flush">
               <li class="list-group-item"><strong>Price and Range Analysis</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Previous Close:</span><span>{{data[1]}}</span></li>
