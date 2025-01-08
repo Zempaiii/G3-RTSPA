@@ -1,5 +1,5 @@
 from flask import request, jsonify, Flask, render_template, session, redirect, url_for, flash
-import os, sqlite3, requests, plotly, random
+import os, sqlite3, requests, plotly, random, pandas as pd
 import smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
@@ -79,6 +79,8 @@ def prepare_candle_plot(data, symbol):
     open_prices = [entry["o"] for entry in results]
     high_prices = [entry["h"] for entry in results]
     low_prices = [entry["l"] for entry in results]
+    fig = go.Figure()
+    dates = [entry["t"] for entry in results]
     close_prices = [entry["c"] for entry in results]
 
     fig = go.Figure(data=[go.Candlestick(
@@ -325,6 +327,10 @@ def spiaa():
     data = fetch_api_data(symbol, timeframe)
 
     #Risk and volatility
+    # Define dates
+    dates = [entry["t"] for entry in results]
+    dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
+
     # Bollinger Bands
     close_prices = [entry["c"] for entry in results]
     window = 20
@@ -335,6 +341,9 @@ def spiaa():
 
     upper_band = rolling_mean + (rolling_std * num_std_dev)
     lower_band = rolling_mean - (rolling_std * num_std_dev)
+
+    # Initialize the figure
+    fig = go.Figure()
 
     # Add Bollinger Bands to the plot
     fig.add_trace(go.Scatter(
@@ -465,7 +474,7 @@ def spiaa():
         line=dict(color='rgba(0, 255, 0, 0.5)', dash='dot')
     ))
 
-    fig.add_trace(go.Scatter(
+    fig.add_trace(go.Scatter( 
         x=dates,
         y=[resistance3] * len(dates),
         name='Resistance 3',
