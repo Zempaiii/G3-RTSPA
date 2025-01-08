@@ -64,22 +64,38 @@ def calculate_sma(prices, period):
 
 # search suggestion logic
 def search_stocks(query):
-    conn = sqlite3.connect('tickers.db')
-    cursor = conn.cursor()
-    
-    command = """
-            SELECT Symbol, Name FROM tickers
-            WHERE symbol LIKE ? OR Name LIKE ?
-            LIMIT 15
+    try:
+        with sqlite3.connect('tickers.db') as conn:
+            cursor = conn.cursor()
+            
+            # First, search for exact matches
+            command_exact = """
+                SELECT Symbol, Name FROM tickers
+                WHERE Symbol = ? OR Name = ?
+                LIMIT 15
             """
-    cursor.execute(command, (f'%{query}%', f'%{query}%'))
-    
-    results = cursor.fetchall()
-    conn.close()
-    
-    results_dict = [{'Symbol': symbol, 'Name': name} for symbol, name in results]
-    results_dict.sort(key=lambda x: (query.lower() not in x['Symbol'].lower(), query.lower() not in x['Name'].lower()))
-    return results_dict
+            cursor.execute(command_exact, (query, query))
+            exact_results = cursor.fetchall()
+            
+            # If exact matches are found, return them
+            if exact_results:
+                return [{'Symbol': symbol, 'Name': name} for symbol, name in exact_results]
+            
+            # If no exact matches, search for partial matches
+            command_partial = """
+                SELECT Symbol, Name FROM tickers
+                WHERE Symbol LIKE ? OR Name LIKE ?
+                LIMIT 15
+            """
+            cursor.execute(command_partial, (f'%{query}%', f'%{query}%'))
+            partial_results = cursor.fetchall()
+            
+            results_dict = [{'Symbol': symbol, 'Name': name} for symbol, name in partial_results]
+            results_dict.sort(key=lambda x: (query.lower() not in x['Symbol'].lower(), query.lower() not in x['Name'].lower()))
+            return results_dict
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+        return []
 
 # api fetching logic
 def fetch_api_data(symbol, timeframe):
@@ -355,23 +371,13 @@ def create_app():
         cursor = conn.cursor()
 
         command = """
-            SELECT symbol, name FROM stock_history
+            SELECT symbol, name FROM cache
+            JOIN users ON cache.user_id = users.id
+            WHERE users.username = ?
             ORDER BY rowid DESC LIMIT 1
             """
-        cursor.execute(command)
+        cursor.execute(command, (session['username'],))
         result = cursor.fetchone()
-        
-        # command = """
-        #     SELECT stocks_owned FROM portfolios
-        #     JOIN users, tickers
-        #     ON portfolios.user_id = users.user_id
-        #     AND portfolios.symbol = tickers.symbol
-        #     WHERE users.username = ?
-        #     AND tickers.symbol = ?
-        #     """
-        # cursor.execute(command, (session['username'], result[0]))
-        # owned = cursor.fetchall()
-        # owned = sum(x for x in owned)
         conn.close()
 
         if result:
@@ -602,10 +608,10 @@ def create_app():
         cursor = conn.cursor()
         
         command = """
-                INSERT INTO stock_history (symbol, name)
-                VALUES (?, ?) 
+                INSERT INTO cache (symbol, name, user_id)
+                VALUES (?, ?, (SELECT id FROM users WHERE username = ?)) 
                 """
-        cursor.execute(command, (f'{symbol}', f'{name}'))
+        cursor.execute(command, (f'{symbol}', f'{name}', session['username']))
         conn.commit()
         conn.close()
         session['symbol'], session['name'] = symbol, name
