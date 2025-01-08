@@ -45,7 +45,7 @@
  <!-- Trending Stocks Section -->
 <div class="container mt-5">
   <h3 class="mb-4">Stocks Monitoring</h3>
-  <div class="chart-placeholder" style="width: 100%; height: 300px; border: 1px solid #ccc; margin-bottom: 20px;"></div>
+  <div id="lineChart" style="width: 100%; height: 300px; border: 1px solid #ccc; margin-bottom: 20px;"></div>
   <table class="table table-striped">
     <thead>
       <tr>
@@ -86,6 +86,28 @@
       await fetch(`/set_stock?symbol=${symbol}&name=${name}`);
       window.location.href = "/spiaa";
     }
+  </script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    const chartData = JSON.parse('{{ chart_data | safe }}');
+
+    // Function to resize the chart on window resize
+    function resizeChart() {
+      Plotly.relayout('lineChart', {
+      'xaxis.autorange': true,
+      'yaxis.autorange': true
+      });
+    }
+
+    // Initialize the chart
+    Plotly.newPlot('lineChart', chartData, {
+      xaxis: { title: 'Date' },
+      yaxis: { title: 'Price' },
+      type: 'scatter',
+      mode: 'lines+markers'
+    });
+    window.addEventListener('resize', resizeChart);
+    resizeChart();
   </script>
 </body>
 </html>
