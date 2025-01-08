@@ -382,7 +382,7 @@ def create_app():
         cursor = conn.cursor()
         command = """
             SELECT symbol, name FROM stock_history
-            ORDER BY rowid DESC LIMIT 1
+            ORDER BY rowid DESC LIMIT 1 
             """
         cursor.execute(command)
         result = cursor.fetchone()
