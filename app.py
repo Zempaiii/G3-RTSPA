@@ -99,7 +99,7 @@ def search_stocks(query):
 
 # api fetching logic
 def fetch_api_data(symbol, timeframe):
-    day = {'1W': [7, '5T'], '1M': [30, '1H'], '1Y': [365, '1D'], '5Y': [1825, '1W']}
+    day = {'1W': [7, '15T'], '1M': [30, '1H'], '1Y': [365, '1D'], '5Y': [1825, '1W']}
     day = day.get(timeframe)
     end = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
     start = (datetime.now() - timedelta(days=day[0])).strftime('%Y-%m-%dT00:00:00Z')
@@ -361,19 +361,18 @@ def create_app():
                 timeframe = '1W'
         else:
             timeframe = '1W'
-            
+        user = session.get('username')    
+        print(user)
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
-
         command = """
-            SELECT symbol, name FROM cache
-            JOIN users ON cache.user_id = users.id
-            WHERE users.username = ?
+            SELECT symbol, name FROM stock_history
             ORDER BY rowid DESC LIMIT 1
             """
-        cursor.execute(command, (session['username'],))
+        cursor.execute(command)
         result = cursor.fetchone()
         conn.close()
+        
 
         if result:
             session['symbol'], session['name'] = result
@@ -385,14 +384,14 @@ def create_app():
         
         
         data = fetch_api_data(symbol, '1Y') # for fetching first 3 analysis
-        analysis = list()
+        analysis = ["" for _ in range(12)]
         # analysis.append(owned) #stocks owned
         results = data.get('bars', [])
         
         #Price analysis
-        analysis.append(results[0]['c'])
-        analysis.append(f'{results[0]["l"]:.2f} - {results[0]["h"]:.2f}')
-        analysis.append(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
+        analysis[1]=(results[0]['c'])
+        analysis[2]=(f'{results[0]["l"]:.2f} - {results[0]["h"]:.2f}')
+        analysis[3]=(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
         
         #Trend indicators
         data = fetch_api_data(symbol, timeframe)
@@ -593,7 +592,7 @@ def create_app():
         )
         
         chart_data = prepare_candle_plot(data, volume=volumes, bollinger=upper_band)
-        return render_template('spiaalatest.html', data=data, symbol=symbol, name=name, analysis=analysis, chart_data=chart_data)
+        return render_template('spiaalatest.html', data=analysis, symbol=symbol, name=name, analysis=analysis, chart_data=chart_data)
    
     @app.route('/set_stock') 
     def set_stock():
@@ -603,10 +602,10 @@ def create_app():
         cursor = conn.cursor()
         
         command = """
-                INSERT INTO cache (symbol, name, user_id)
-                VALUES (?, ?, (SELECT id FROM users WHERE username = ?)) 
+                INSERT INTO stock_history (symbol, name)
+                VALUES (?, ?) 
                 """
-        cursor.execute(command, (f'{symbol}', f'{name}', session['username']))
+        cursor.execute(command, (f'{symbol}', f'{name}'))
         conn.commit()
         conn.close()
         session['symbol'], session['name'] = symbol, name
