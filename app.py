@@ -323,10 +323,102 @@ def spiaa():
     
     #Trend indicators
     data = fetch_api_data(symbol, timeframe)
+
     #Risk and volatility
-    
-    #Valuation
-    
+    # Bollinger Bands
+    close_prices = [entry["c"] for entry in results]
+    window = 20
+    num_std_dev = 2
+
+    rolling_mean = pd.Series(close_prices).rolling(window).mean()
+    rolling_std = pd.Series(close_prices).rolling(window).std()
+
+    upper_band = rolling_mean + (rolling_std * num_std_dev)
+    lower_band = rolling_mean - (rolling_std * num_std_dev)
+
+    # Add Bollinger Bands to the plot
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=upper_band,
+        name='Upper Band',
+        line=dict(color='rgba(255, 0, 0, 0.5)')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=rolling_mean,
+        name='Middle Band',
+        line=dict(color='rgba(0, 0, 255, 0.5)')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=lower_band,
+        name='Lower Band',
+        line=dict(color='rgba(0, 255, 0, 0.5)')
+    ))
+
+    # Volume analysis
+    volumes = [entry["v"] for entry in results]
+    pvi = [1000]  # Positive Volume Index starts at 1000
+    nvi = [1000]  # Negative Volume Index starts at 1000
+
+    for i in range(1, len(close_prices)):
+        if volumes[i] > volumes[i - 1]:
+            pvi.append(pvi[-1] + ((close_prices[i] - close_prices[i - 1]) / close_prices[i - 1]) * pvi[-1])
+            nvi.append(nvi[-1])
+        else:
+            nvi.append(nvi[-1] + ((close_prices[i] - close_prices[i - 1]) / close_prices[i - 1]) * nvi[-1])
+            pvi.append(pvi[-1])
+
+    # Add PVI and NVI to the plot
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=pvi,
+        name='Positive Volume Index',
+        line=dict(color='rgba(0, 255, 255, 0.5)')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=nvi,
+        name='Negative Volume Index',
+        line=dict(color='rgba(255, 165, 0, 0.5)')
+    ))
+
+    # Add a button or toggle for PVI and NVI
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="left",
+                buttons=list([
+                    dict(
+                        args=["visible", [True, True, True, True, True, True, True, True]],
+                        label="Show All",
+                        method="restyle"
+                    ),
+                    dict(
+                        args=["visible", [True, True, True, True, False, False, False, False]],
+                        label="Hide Volume Indexes",
+                        method="restyle"
+                    ),
+                    dict(
+                        args=["visible", [False, False, False, False, True, True, True, True]],
+                        label="Show Volume Indexes Only",
+                        method="restyle"
+                    )
+                ]),
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=0.11,
+                xanchor="left",
+                y=1.15,
+                yanchor="top"
+            ),
+        ]
+    )
+
     #Support and resistance
     
        
