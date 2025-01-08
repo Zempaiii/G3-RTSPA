@@ -694,3 +694,26 @@ footer {
   display: none;
 }
 
+.logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem auto;
+}
+
+.logo-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  max-width: 100%;
+  transform: translate(-50px, 20px) scale(5.5); /* Moved left by -30px */
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .logo-img {
+      width: 100px;
+      height: 100px;
+      transform: translate(-50px, 30px) scale(5.5); /* Moved left by -40px */
+  }
+}

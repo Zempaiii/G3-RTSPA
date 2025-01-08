@@ -48,10 +48,11 @@
   <form class="year-buttons" method="POST">
     <div class="container text-center mt-3">
       <div class="btn-group" role="group" aria-label="Timeframe buttons">
-        <button type="submit" name="timeframe" value="1W" class="btn btn-outline-primary">1W</button>
-        <button type="submit" name="timeframe" value="1M" class="btn btn-outline-primary">1M</button>
-        <button type="submit" name="timeframe" value="1Y" class="btn btn-outline-primary">1Y</button>
-        <button type="submit" name="timeframe" value="5Y" class="btn btn-outline-primary">5Y</button>
+        <button type="submit" name="timeframe" value="1W" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1W</button>
+        <button type="submit" name="timeframe" value="1M" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1M</button>
+        <button type="submit" name="timeframe" value="1Y" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1Y</button>
+        <button type="submit" name="timeframe" value="5Y" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">5Y</button>
+        <button id="monitorButton" class="btn btn-secondary btn-sm ms-2" onclick="toggleMonitorStock(event)" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">Monitor This Stock</button>
       </div>
     </div>
   </form>
@@ -60,7 +61,6 @@
       <div class="col-md-8 d-flex justify-content-center" style="margin-top: -1rem;">
         <div id="stock_details" class="card w-100">
           <div class="card-body">
-            <h3 class="card-title">Stock Owned: {{data[0]}}</h3>
             <ul class="list-group list-group-flush">
               <li class="list-group-item"><strong>Price and Range Analysis</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Previous Close:</span><span>{{data[1]}}</span></li>
@@ -85,6 +85,21 @@
       <div style="height: 1rem"></div>
     </div>
   </div>
+  <script>
+    function toggleMonitorStock(event) {
+      event.preventDefault();
+      const button = document.getElementById('monitorButton');
+      if (button.textContent === 'Monitor This Stock') {
+        button.textContent = 'Monitoring This Stock';
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-success');
+      } else {
+        button.textContent = 'Monitor This Stock';
+        button.classList.remove('btn-success');
+        button.classList.add('btn-secondary');
+      }
+    }
+  </script>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
     const chartData = JSON.parse('{{ chart_data | safe }}');

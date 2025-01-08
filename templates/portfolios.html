@@ -44,7 +44,68 @@
 
  <!-- Trending Stocks Section -->
 <div class="container mt-5">
-  <h3 class="mb-4">My Portfolios</h3>
+  <h3 class="mb-4">Stocks Monitoring</h3>
+  <div class="chart-placeholder" style="width: 100%; height: 300px; border: 1px solid #ccc; margin-bottom: 20px;"></div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Symbol</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Percent</th>
+        <th>Day High</th>
+        <th>Day low</th>
+        <th>Volume</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>AAPL</td>
+        <td>Apple Inc.</td>
+        <td>$150.00</td>
+        <td>1.5%</td>
+        <td>$152.00</td>
+        <td>$148.00</td>
+        <td>100M</td>
+      </tr>
+      <tr>
+        <td>NVDA</td>
+        <td>NVIDIA Corporation</td>
+        <td>$200.00</td>
+        <td>2.0%</td>
+        <td>$205.00</td>
+        <td>$195.00</td>
+        <td>80M</td>
+      </tr>
+      <tr>
+        <td>TSLA</td>
+        <td>Tesla, Inc.</td>
+        <td>$300.00</td>
+        <td>3.0%</td>
+        <td>$310.00</td>
+        <td>$290.00</td>
+        <td>120M</td>
+      </tr>
+      <tr>
+        <td>XHG</td>
+        <td>Example Corp.</td>
+        <td>$50.00</td>
+        <td>0.5%</td>
+        <td>$51.00</td>
+        <td>$49.00</td>
+        <td>60M</td>
+      </tr>
+      <tr>
+        <td>SILO</td>
+        <td>Silo Inc.</td>
+        <td>$75.00</td>
+        <td>1.0%</td>
+        <td>$77.00</td>
+        <td>$73.00</td>
+        <td>40M</td>
+      </tr>
+    </tbody>
+  </table>
   <div class="row">
     
     {% for portfolio in portfolios %}
