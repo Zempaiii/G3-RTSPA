@@ -64,26 +64,42 @@ def calculate_sma(prices, period):
 
 # search suggestion logic
 def search_stocks(query):
-    conn = sqlite3.connect('tickers.db')
-    cursor = conn.cursor()
-    
-    command = """
-            SELECT Symbol, Name FROM tickers
-            WHERE symbol LIKE ? OR Name LIKE ?
-            LIMIT 15
+    try:
+        with sqlite3.connect('tickers.db') as conn:
+            cursor = conn.cursor()
+            
+            # First, search for exact matches
+            command_exact = """
+                SELECT Symbol, Name FROM tickers
+                WHERE Symbol = ? OR Name = ?
+                LIMIT 15
             """
-    cursor.execute(command, (f'%{query}%', f'%{query}%'))
-    
-    results = cursor.fetchall()
-    conn.close()
-    
-    results_dict = [{'Symbol': symbol, 'Name': name} for symbol, name in results]
-    results_dict.sort(key=lambda x: (query.lower() not in x['Symbol'].lower(), query.lower() not in x['Name'].lower()))
-    return results_dict
+            cursor.execute(command_exact, (query, query))
+            exact_results = cursor.fetchall()
+            
+            # If exact matches are found, return them
+            if exact_results:
+                return [{'Symbol': symbol, 'Name': name} for symbol, name in exact_results]
+            
+            # If no exact matches, search for partial matches
+            command_partial = """
+                SELECT Symbol, Name FROM tickers
+                WHERE Symbol LIKE ? OR Name LIKE ?
+                LIMIT 15
+            """
+            cursor.execute(command_partial, (f'%{query}%', f'%{query}%'))
+            partial_results = cursor.fetchall()
+            
+            results_dict = [{'Symbol': symbol, 'Name': name} for symbol, name in partial_results]
+            results_dict.sort(key=lambda x: (query.lower() not in x['Symbol'].lower(), query.lower() not in x['Name'].lower()))
+            return results_dict
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+        return []
 
 # api fetching logic
 def fetch_api_data(symbol, timeframe):
-    day = {'1W': [7, '5T'], '1M': [30, '1H'], '1Y': [365, '1D'], '5Y': [1825, '1W']}
+    day = {'1W': [7, '15T'], '1M': [30, '1H'], '1Y': [365, '1D'], '5Y': [1825, '1W']}
     day = day.get(timeframe)
     end = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
     start = (datetime.now() - timedelta(days=day[0])).strftime('%Y-%m-%dT00:00:00Z')
@@ -327,14 +343,9 @@ def create_app():
         return jsonify(matches)
 
     # to be removed
-    @app.route('/add')
-    def add_stocks():
+    @app.route('/stock_monitoring')
+    def stock_monitoring():
         return render_template('portfolios.html')
-
-    # to be removed
-    @app.route('/remove')
-    def remove_stocks():
-        return render_template('removes.html')
 
     # retrieving graph data from API
     @app.route('/spiaa', methods=['GET', 'POST'])
@@ -350,29 +361,18 @@ def create_app():
                 timeframe = '1W'
         else:
             timeframe = '1W'
-            
+        user = session.get('username')    
+        print(user)
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
-
         command = """
             SELECT symbol, name FROM stock_history
             ORDER BY rowid DESC LIMIT 1
             """
         cursor.execute(command)
         result = cursor.fetchone()
-        
-        # command = """
-        #     SELECT stocks_owned FROM portfolios
-        #     JOIN users, tickers
-        #     ON portfolios.user_id = users.user_id
-        #     AND portfolios.symbol = tickers.symbol
-        #     WHERE users.username = ?
-        #     AND tickers.symbol = ?
-        #     """
-        # cursor.execute(command, (session['username'], result[0]))
-        # owned = cursor.fetchall()
-        # owned = sum(x for x in owned)
         conn.close()
+        
 
         if result:
             session['symbol'], session['name'] = result
@@ -384,14 +384,14 @@ def create_app():
         
         
         data = fetch_api_data(symbol, '1Y') # for fetching first 3 analysis
-        analysis = list()
+        analysis = ["" for _ in range(12)]
         # analysis.append(owned) #stocks owned
         results = data.get('bars', [])
         
         #Price analysis
-        analysis.append(results[0]['c'])
-        analysis.append(f'{results[0]["l"]:.2f} - {results[0]["h"]:.2f}')
-        analysis.append(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
+        analysis[1]=(results[0]['c'])
+        analysis[2]=(f'{results[0]["l"]:.2f} - {results[0]["h"]:.2f}')
+        analysis[3]=(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
         
         #Trend indicators
         data = fetch_api_data(symbol, timeframe)
@@ -592,7 +592,7 @@ def create_app():
         )
         
         chart_data = prepare_candle_plot(data, volume=volumes, bollinger=upper_band)
-        return render_template('spiaalatest.html', data=data, symbol=symbol, name=name, analysis=analysis, chart_data=chart_data)
+        return render_template('spiaalatest.html', data=analysis, symbol=symbol, name=name, analysis=analysis, chart_data=chart_data)
    
     @app.route('/set_stock') 
     def set_stock():
