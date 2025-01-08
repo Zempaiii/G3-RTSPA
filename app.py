@@ -332,9 +332,9 @@ def create_app():
             data["high"] = f'{results[0]["h"]:.2f}'
             data["low"] = f'{results[0]["l"]:.2f}'
             
-            portfolios_data = []
+            
         
-        return render_template('index.html', stocks=symbol_data, portfolios=portfolios_data)
+        return render_template('index.html', stocks=symbol_data)
 
     # search suggestion backend    
     @app.route('/search')
@@ -350,7 +350,36 @@ def create_app():
     # to be removed
     @app.route('/stock_monitoring')
     def stock_monitoring():
-        return render_template('portfolios.html')
+        check_login()
+        conn = sqlite3.connect('tickers.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT symbol FROM monitoring JOIN users ON users.user_id = monitoring.user_id WHERE users.username = ?", (session.get('username'),))
+        results = cursor.fetchall()
+        conn.close()
+        
+        headers = {
+                "accept": "application/json",
+                "APCA-API-KEY-ID": "PK9XXY01BXT1F6L9EFZ4",
+                "APCA-API-SECRET-KEY": "vdlBS5PgF4Lp7SgyYm42MCF5jm8JUlpPMEGvLnT3"
+        }
+        symbol_data = [{"symbol": "", "name": "", "price": 0, "percent": 0, "high": 0, "low": 0, "volume": 0} for _ in range(18)]
+        i = 0
+        for data in symbol_data:
+            data["symbol"] = results[i]
+            i +=1
+            data["name"] = search_stocks(data["symbol"])[0].get("Name")
+            
+            today = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
+            yesterday = (datetime.now() - timedelta(days=14)).strftime('%Y-%m-%dT00:00:00Z')
+            url = f"https://data.alpaca.markets/v2/stocks/{data['symbol']}/bars?timeframe=5T&start={yesterday}&end={today}&limit=1000&adjustment=raw&feed=iex&sort=asc"
+            response = requests.get(url, headers=headers)
+            results = response.json().get('bars', [])
+            data["price"] = f'{results[0]["c"]:.2f}'
+            data["percent"] = f'{(((results[0]["c"] - results[0]["o"]) / results[1]["o"]) * 100):.2f}'
+            data["high"] = f'{results[0]["h"]:.2f}'
+            data["low"] = f'{results[0]["l"]:.2f}'
+            data["volume"] = f'{(results[0]["volume"] / 1000000):.2f}'
+        return render_template('stockmonitoring.html', stocks=symbol_data)
 
     # retrieving graph data from API
     @app.route('/spiaa', methods=['GET', 'POST'])
@@ -606,8 +635,15 @@ def create_app():
             ]
         )
         
+        # Check if the symbol is in the monitoring table for the user
+        conn = sqlite3.connect('tickers.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM monitoring JOIN users ON users.user_id = monitoring.user_id WHERE users.username = ? AND symbol = ?", (session['username'], symbol))
+        is_monitored = cursor.fetchone() is not None
+        conn.close()
+        
         chart_data = prepare_candle_plot(data, volume=volumes, bollinger=upper_band)
-        return render_template('spiaalatest.html', data=analysis, symbol=symbol, name=name, analysis=analysis, chart_data=chart_data)
+        return render_template('spiaalatest.html', data=analysis, symbol=symbol, name=name, analysis=analysis, chart_data=chart_data, is_monitored=is_monitored)
    
     @app.route('/set_stock') 
     def set_stock():
@@ -625,6 +661,39 @@ def create_app():
         conn.close()
         session['symbol'], session['name'] = symbol, name
         return jsonify({"message": "Stock set in session"}), 200
+
+    @app.route('/toggle_monitor', methods=['POST'])
+    def toggle_monitor():
+        symbol = request.form.get('symbol')
+        username = session.get('username')
+        
+        if username is None:
+            conn = sqlite3.connect('tickers.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT username FROM user_history ORDER BY id DESC LIMIT 1")
+            username = cursor.fetchone()
+            conn.close()    
+        
+        if not symbol or not username:
+            return jsonify({"success": False, "message": "Invalid request"}), 400
+        
+        conn = sqlite3.connect('tickers.db')
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT 1 FROM monitoring JOIN users ON users.user_id = monitoring.user_id WHERE users.username = ? AND symbol = ?", (username, symbol))
+        is_monitored = cursor.fetchone() is not None
+        
+        if is_monitored:
+            cursor.execute("DELETE FROM monitoring WHERE user_id = (SELECT user_id FROM users WHERE username = ?) AND symbol = ?", (username, symbol))
+            message = "Removed from monitoring"
+        else:
+            cursor.execute("INSERT INTO monitoring (user_id, symbol) VALUES ((SELECT user_id FROM users WHERE username = ?), ?)", (username, symbol))
+            message = "Added to monitoring"
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": message})
 
     # @app.errorhandler(Exception)
     # def handle_errors(e):

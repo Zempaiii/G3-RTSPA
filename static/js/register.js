@@ -31,7 +31,6 @@ document.getElementById("registerButton").addEventListener("click", function(eve
         })
         .then(response => response.json())
         .then(data => {
-              alert(response)
             if (data.success) {
                 alert("Registration successful!");
             } else {
@@ -39,7 +38,6 @@ document.getElementById("registerButton").addEventListener("click", function(eve
             }
         })
         .catch(error => {
-            alert(response, data)
             console.error('Error:', error);
             alert("An error occurred during registration. error: " + error);
         });
