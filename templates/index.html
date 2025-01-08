@@ -13,11 +13,11 @@
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
           <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
-            <img src="{{ url_for('static', filename='images/LGO.png') }}" 
-                 alt="Logo" 
-                 width="" 
-                 height="80" 
-                 style="filter: invert(1); margin-right: 15px; border-radius: 75%;">
+            <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
+              <img src="{{ url_for('static', filename='images/logo.svg') }}" 
+              alt="Logo" 
+              class="logo-img"
+              style="filter: invert(1) brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);">
         </span>
           <!-- Removed Real-Time Stock Price Analysis name -->
       </a>
@@ -27,7 +27,7 @@
       <div class="collapse navbar-collapse" id="navcol-5">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('stock_monitoring') }}">Stock Monitoring</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('stock_monitoring') }}">Portfolios</a></li>
         </ul>
         <ul class="navbar-nav">
           <li class="nav-item">
@@ -43,7 +43,7 @@
 
  <!-- Trending Stocks Section -->
 <div class="container mt-5">
-  <h3 class="mb-4">Stocks You May Like</h3>
+  <h3 class="mb-4">Trending Stocks</h3>
   <div class="row">
     
     {% for stock in stocks %}
@@ -84,6 +84,48 @@
     {% endfor %}
   </div>
 </div>
+<!-- Centered vertically long card for portfolio summary (Placeholder) -->
+<div class="row justify-content-center">
+  {% for portfolio in portfolios %}
+    <div class="col-md-4 mb-3">
+      <div class="card">
+          <div class="card-body">
+              <h2 class="card-title">PORTFOLIO NAME</h2>
+              <hr>
+              <div class="d-flex justify-content-between mb-3">
+                  <div>
+                      <h4 class="mb-0">Current Value</h4>
+                      <span class="text-muted">10000000</span>
+                  </div>
+                  <div class="text-end">
+                      <h4 class="mb-0">Percent Change</h4>
+                      <span class="text-muted">0.01%</span>
+                  </div>
+              </div>
+              <div class="text-center mb-3">
+                  <div class="chart-placeholder" style="width: 100%; height: 150px; border: 1px solid #ccc; margin: 0 auto;"></div>
+              </div>
+              <hr>
+              <div class="mb-3">
+                  <h5 class="mb-0">Best Performing Stock</h5>
+                  <div class="d-flex justify-content-between">
+                      <span class="text-muted">MSFT</span>
+                      <span class="text-muted">Microsoft Inc.</span>
+                      <span class="text-muted">200%</span>
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <h5 class="mb-0">Worst Performing Stock</h5>
+                  <div class="d-flex justify-content-between">
+                      <span class="text-muted">TSLA</span>
+                      <span class="text-muted">Tesla Corp</span>
+                      <span class="text-muted">-200%</span>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+  {% endfor %}
 </div>
 
 

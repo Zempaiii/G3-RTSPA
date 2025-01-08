@@ -13,10 +13,9 @@
       <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
         <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
           <img src="{{ url_for('static', filename='images/logo.svg') }}" 
-               alt="Logo" 
-               width="80" 
-               height="80" 
-               style="filter: invert(1); margin-right: 15px; border-radius: 75%;">
+              alt="Logo" 
+              class="logo-img"
+              style="filter: invert(1) brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);">
         </span>
       </a>
       <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5">
@@ -25,7 +24,7 @@
       <div class="collapse navbar-collapse" id="navcol-5">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('stock_monitoring') }}">Stock Monitoring</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('stock_monitoring') }}">Portfolios</a></li>
         </ul>
         <ul class="navbar-nav">
           <li class="nav-item">
@@ -48,11 +47,10 @@
   <form class="year-buttons" method="POST">
     <div class="container text-center mt-3">
       <div class="btn-group" role="group" aria-label="Timeframe buttons">
-        <button type="submit" name="timeframe" value="1W" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1W</button>
-        <button type="submit" name="timeframe" value="1M" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1M</button>
-        <button type="submit" name="timeframe" value="1Y" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1Y</button>
-        <button type="submit" name="timeframe" value="5Y" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">5Y</button>
-        <button id="monitorButton" class="btn btn-secondary btn-sm ms-2" onclick="toggleMonitorStock(event)" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">Monitor This Stock</button>
+        <button type="submit" name="timeframe" value="1W" class="btn btn-outline-primary">1W</button>
+        <button type="submit" name="timeframe" value="1M" class="btn btn-outline-primary">1M</button>
+        <button type="submit" name="timeframe" value="1Y" class="btn btn-outline-primary">1Y</button>
+        <button type="submit" name="timeframe" value="5Y" class="btn btn-outline-primary">5Y</button>
       </div>
     </div>
   </form>
@@ -61,6 +59,13 @@
       <div class="col-md-8 d-flex justify-content-center" style="margin-top: -1rem;">
         <div id="stock_details" class="card w-100">
           <div class="card-body">
+            <button class="btn btn-primary" onclick="monitorStock()">Monitor This Stock</button>
+            <script>
+              function monitorStock() {
+              alert('You are now monitoring this stock.');
+              // Add your monitoring logic here
+              }
+            </script>
             <ul class="list-group list-group-flush">
               <li class="list-group-item"><strong>Price and Range Analysis</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Previous Close:</span><span>{{data[1]}}</span></li>
@@ -85,21 +90,6 @@
       <div style="height: 1rem"></div>
     </div>
   </div>
-  <script>
-    function toggleMonitorStock(event) {
-      event.preventDefault();
-      const button = document.getElementById('monitorButton');
-      if (button.textContent === 'Monitor This Stock') {
-        button.textContent = 'Monitoring This Stock';
-        button.classList.remove('btn-secondary');
-        button.classList.add('btn-success');
-      } else {
-        button.textContent = 'Monitor This Stock';
-        button.classList.remove('btn-success');
-        button.classList.add('btn-secondary');
-      }
-    }
-  </script>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
     const chartData = JSON.parse('{{ chart_data | safe }}');
