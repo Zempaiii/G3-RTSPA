@@ -351,35 +351,65 @@ def create_app():
     @app.route('/stock_monitoring')
     def stock_monitoring():
         check_login()
+        if session.get('username') is None:
+            conn = sqlite3.connect('tickers.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT username FROM user_history ORDER BY id DESC LIMIT 1")
+            user = cursor.fetchone()
+            conn.close()
+            if user:
+                session['username'] = user[0]
+            else:
+                return redirect(url_for('login'))
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
         cursor.execute("SELECT symbol FROM monitoring JOIN users ON users.user_id = monitoring.user_id WHERE users.username = ?", (session.get('username'),))
-        results = cursor.fetchall()
+        res = cursor.fetchall()
         conn.close()
-        
+        res = [result[0] for result in res]
         headers = {
                 "accept": "application/json",
                 "APCA-API-KEY-ID": "PK9XXY01BXT1F6L9EFZ4",
                 "APCA-API-SECRET-KEY": "vdlBS5PgF4Lp7SgyYm42MCF5jm8JUlpPMEGvLnT3"
         }
-        symbol_data = [{"symbol": "", "name": "", "price": 0, "percent": 0, "high": 0, "low": 0, "volume": 0} for _ in range(18)]
+        symbol_data = [{"symbol": "", "name": "", "price": 0, "percent": 0, "high": 0, "low": 0, "volume": 0} for _ in range(len(res))]
         i = 0
         for data in symbol_data:
-            data["symbol"] = results[i]
+            print(res[i])
+            data["symbol"] = res[i]
             i +=1
-            data["name"] = search_stocks(data["symbol"])[0].get("Name")
+            stock_info = search_stocks(data["symbol"])
+            if stock_info:
+                data["name"] = stock_info[0].get("Name")
+            print(stock_info)
             
             today = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
-            yesterday = (datetime.now() - timedelta(days=14)).strftime('%Y-%m-%dT00:00:00Z')
-            url = f"https://data.alpaca.markets/v2/stocks/{data['symbol']}/bars?timeframe=5T&start={yesterday}&end={today}&limit=1000&adjustment=raw&feed=iex&sort=asc"
+            yesterday = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%dT00:00:00Z')
+            url = f"https://data.alpaca.markets/v2/stocks/{data['symbol']}/bars?timeframe=1H&start={yesterday}&end={today}&limit=1000&adjustment=raw&feed=iex&sort=asc"
             response = requests.get(url, headers=headers)
-            results = response.json().get('bars', [])
-            data["price"] = f'{results[0]["c"]:.2f}'
-            data["percent"] = f'{(((results[0]["c"] - results[0]["o"]) / results[1]["o"]) * 100):.2f}'
-            data["high"] = f'{results[0]["h"]:.2f}'
-            data["low"] = f'{results[0]["l"]:.2f}'
-            data["volume"] = f'{(results[0]["volume"] / 1000000):.2f}'
-        return render_template('stockmonitoring.html', stocks=symbol_data)
+            if response.status_code == 200:
+                results = response.json().get('bars', [])
+                if results:
+                    data["price"] = f'{results[0]["c"]:.2f}'
+                    data["percent"] = f'{(((results[0]["c"] - results[0]["o"]) / results[1]["o"]) * 100):.2f}'
+                    data["high"] = f'{results[0]["h"]:.2f}'
+                    data["low"] = f'{results[0]["l"]:.2f}'
+                    data["volume"] = f'{(results[0]["v"] / 1000000):.2f}'
+        
+        lines = [fetch_api_data(symbol, '1W') for symbol in res]
+        def prepare_line_graph(data):
+            fig = go.Figure()
+            for i in range(len(res)):
+                results = data[i].get('bars', [])
+                dates = [entry["t"] for entry in results]
+                dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
+                close_prices = [entry["c"] for entry in results]
+                fig.add_trace(go.Scatter(x=dates, y=close_prices, mode='lines', name=res[i]))
+        
+        chart_data = prepare_line_graph(lines)
+        
+        
+        return render_template('stockmonitoring.html', stocks=symbol_data, chart_data=chart_data)
 
     # retrieving graph data from API
     @app.route('/spiaa', methods=['GET', 'POST'])
@@ -694,7 +724,8 @@ def create_app():
         conn.close()
         
         return jsonify({"success": True, "message": message})
-
+    
+    
     # @app.errorhandler(Exception)
     # def handle_errors(e):
     #     return render_template('error.html', error_message=e), 500
