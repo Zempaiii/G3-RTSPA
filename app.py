@@ -420,7 +420,97 @@ def spiaa():
     )
 
     #Support and resistance
-    
+    # Support and Resistance using Pivot Points Method
+    pivot_point = (results[0]['h'] + results[0]['l'] + results[0]['c']) / 3
+    resistance1 = (2 * pivot_point) - results[0]['l']
+    support1 = (2 * pivot_point) - results[0]['h']
+    resistance2 = pivot_point + (results[0]['h'] - results[0]['l'])
+    support2 = pivot_point - (results[0]['h'] - results[0]['l'])
+    resistance3 = results[0]['h'] + 2 * (pivot_point - results[0]['l'])
+    support3 = results[0]['l'] - 2 * (results[0]['h'] - pivot_point)
+
+    # Add Support and Resistance levels to the plot
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=[pivot_point] * len(dates),
+        name='Pivot Point',
+        line=dict(color='rgba(128, 0, 128, 0.5)', dash='dash')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=[resistance1] * len(dates),
+        name='Resistance 1',
+        line=dict(color='rgba(255, 0, 0, 0.5)', dash='dash')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=[support1] * len(dates),
+        name='Support 1',
+        line=dict(color='rgba(0, 255, 0, 0.5)', dash='dash')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=[resistance2] * len(dates),
+        name='Resistance 2',
+        line=dict(color='rgba(255, 0, 0, 0.5)', dash='dot')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=[support2] * len(dates),
+        name='Support 2',
+        line=dict(color='rgba(0, 255, 0, 0.5)', dash='dot')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=[resistance3] * len(dates),
+        name='Resistance 3',
+        line=dict(color='rgba(255, 0, 0, 0.5)', dash='dashdot')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=[support3] * len(dates),
+        name='Support 3',
+        line=dict(color='rgba(0, 255, 0, 0.5)', dash='dashdot')
+    ))
+
+    # Add a button or toggle for Support and Resistance levels
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="left",
+                buttons=list([
+                    dict(
+                        args=["visible", [True, True, True, True, True, True, True, True, True, True, True, True]],
+                        label="Show All",
+                        method="restyle"
+                    ),
+                    dict(
+                        args=["visible", [True, True, True, True, False, False, False, False, False, False, False, False]],
+                        label="Hide Support/Resistance",
+                        method="restyle"
+                    ),
+                    dict(
+                        args=["visible", [False, False, False, False, True, True, True, True, True, True, True, True]],
+                        label="Show Support/Resistance Only",
+                        method="restyle"
+                    )
+                ]),
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=0.11,
+                xanchor="left",
+                y=1.15,
+                yanchor="top"
+            ),
+        ]
+    )
        
     chart_data = prepare_candle_plot(data, symbol)
     
