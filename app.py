@@ -240,8 +240,9 @@ def home():
         data["high"] = f'{results[0]["h"]:.2f}'
         data["low"] = f'{results[0]["l"]:.2f}'
         
+        portfolios_data = []
     
-    return render_template('index.html', stocks=symbol_data)
+    return render_template('index.html', stocks=symbol_data, portfolios=portfolios_data)
 
 # search suggestion backend    
 @app.route('/search')
@@ -257,7 +258,7 @@ def search():
 # to be removed
 @app.route('/add')
 def add_stocks():
-    return render_template('adds.html')
+    return render_template('portfolios.html')
 
 # to be removed
 @app.route('/remove')
@@ -312,17 +313,23 @@ def spiaa():
     
     
     data = fetch_api_data(symbol, '1Y') # for fetching first 3 analysis
-    analysis = list()
+    analysis = [None for _ in range(12)]
     # analysis.append(owned) #stocks owned
     results = data.get('bars', [])
-    
     #Price analysis
-    analysis.append(results[0]['c'])
-    analysis.append(f'{results[0]["l"]:.2f} - {results[0]["h"]:.2f}')
-    analysis.append(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
+    analysis[1]=(results[0]['c'])
+    analysis[2]=(f'{results[0]["l"]:.2f} - {results[0]["h"]:.2f}')
+    analysis[3]=(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
     
     #Trend indicators
     data = fetch_api_data(symbol, timeframe)
+    results = data.get('bars', [])
+    prices = [entry["c"] for entry in results]
+    period = len(prices)
+    analysis[4]=(f'{sum(prices) / period:.2f}')
+    multiplier = 2 / (period + 1)
+    analysis[5]=(f'{(prices[0] - (sum(prices) / period)) * multiplier + prices[0]:.2f}')
+
     #Risk and volatility
     
     #Valuation
@@ -334,7 +341,7 @@ def spiaa():
     
     
     
-    return render_template('spiaalatest.html', name=name, symbol=symbol, chart_data=chart_data)
+    return render_template('spiaalatest.html', data=analysis, name=name, symbol=symbol, chart_data=chart_data)
 
 @app.route('/set_stock') 
 def set_stock():
