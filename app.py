@@ -34,6 +34,14 @@ def send_verification_email(email,code):
         server.login(mail_username, mail_password)
         server.sendmail(mail_username, email, msg.as_string())
 
+def calculate_sma(prices, period):
+    if len(prices) < period:
+        return None  # Not enough data to calculate SMA
+    sma = []
+    for i in range(len(prices) - period + 1):
+        sma.append(sum(prices[i:i + period]) / period)
+    return sma
+
 # search suggestion logic
 def search_stocks(query):
     conn = sqlite3.connect('tickers.db')
@@ -72,7 +80,7 @@ def fetch_api_data(symbol, timeframe):
         return None
     return response.json()
 
-def prepare_candle_plot(data, symbol):
+def prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger=None, volume=None):
     results = data.get('bars', [])
     dates = [entry["t"] for entry in results]
     dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
@@ -88,6 +96,16 @@ def prepare_candle_plot(data, symbol):
         low=low_prices,
         close=close_prices
     )])
+    
+    if sma:
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=sma,
+            mode='lines',
+            name='SMA',
+            line=dict(color='blue', width=2)
+        ))
+
 
     fig.update_layout(
         xaxis_title="Date",
@@ -273,7 +291,6 @@ def spiaa():
         timeframe = request.form.get('timeframe')
         print(timeframe)
         if timeframe:
-            os.system('cls')
             print("timeframe", timeframe)
         else:
             timeframe = '1W'
@@ -323,13 +340,57 @@ def spiaa():
     
     #Trend indicators
     data = fetch_api_data(symbol, timeframe)
-    results = data.get('bars', [])
+    results = data.get('bars', [])                                                                                                                                                                                                                                                                                      #secretcommentdawsabiniser
     prices = [entry["c"] for entry in results]
     period = len(prices)
-    analysis[4]=(f'{sum(prices) / period:.2f}')
+    analysis[4]=(f'{sum(prices) / period:.2f}') #latest sma
     multiplier = 2 / (period + 1)
     analysis[5]=(f'{(prices[0] - (sum(prices) / period)) * multiplier + prices[0]:.2f}')
+    def calculate_macd(prices, slow=26, fast=12, signal=9):
+        if len(prices) < slow:
+            return None, None, None  # Not enough data to calculate MACD
 
+        def ema(prices, period):
+            k = 2 / (period + 1)
+            ema_values = [sum(prices[:period]) / period]
+            for price in prices[period:]:
+                ema_values.append(price * k + ema_values[-1] * (1 - k))
+            return ema_values
+
+        ema_fast = ema(prices, fast)
+        ema_slow = ema(prices, slow)
+        macd_line = [fast - slow for fast, slow in zip(ema_fast[-len(ema_slow):], ema_slow)]
+        signal_line = ema(macd_line, signal)
+        macd_histogram = [macd - signal for macd, signal in zip(macd_line[-len(signal_line):], signal_line)]
+
+        return macd_line, signal_line, macd_histogram
+
+    macd_line, signal_line, macd_histogram = calculate_macd(prices)
+    analysis[6] = f'Signal line: {signal_line[-1]:.2f}'
+    
+    def calculate_rsi(prices, period=14):
+        if len(prices) < period:
+            return None  # Not enough data to calculate RSI
+
+        deltas = [prices[i] - prices[i - 1] for i in range(1, len(prices))]
+        gains = [delta if delta > 0 else 0 for delta in deltas]
+        losses = [-delta if delta < 0 else 0 for delta in deltas]
+
+        avg_gain = sum(gains[:period]) / period
+        avg_loss = sum(losses[:period]) / period
+
+        rsi = []
+        for i in range(period, len(prices)):
+            avg_gain = (avg_gain * (period - 1) + gains[i - 1]) / period
+            avg_loss = (avg_loss * (period - 1) + losses[i - 1]) / period
+
+            rs = avg_gain / avg_loss if avg_loss != 0 else 0
+            rsi.append(100 - (100 / (1 + rs)))
+
+        return rsi
+
+    rsi_values = calculate_rsi(prices)
+    analysis[7] = f'{rsi_values[-1]:.2f}' if rsi_values else 'RSI: N/A'
     #Risk and volatility
     
     #Valuation
@@ -337,7 +398,7 @@ def spiaa():
     #Support and resistance
     
        
-    chart_data = prepare_candle_plot(data, symbol)
+    chart_data = prepare_candle_plot(data)
     
     
     
