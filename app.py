@@ -180,6 +180,11 @@ def create_app():
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if "username" in session:
+            conn = sqlite3.connect('tickers.db')
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO user_history (username) VALUES (?)", (session['username'],))
+            conn.commit()
+            conn.close()
             return home()
         if request.method == 'POST' and 'email' in request.form and 'password' in request.form:
             conn = sqlite3.connect('tickers.db')
@@ -351,6 +356,16 @@ def create_app():
     @app.route('/spiaa', methods=['GET', 'POST'])
     def spiaa():
         check_login()
+        if session.get('username') is None:
+            conn = sqlite3.connect('tickers.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT username FROM user_history ORDER BY id DESC LIMIT 1")
+            user = cursor.fetchone()
+            conn.close()
+            if user:
+                session['username'] = user[0]
+            else:
+                return redirect(url_for('login'))
         if request.method == 'POST' and 'timeframe' in request.form:
             timeframe = request.form.get('timeframe')
             print(timeframe)
