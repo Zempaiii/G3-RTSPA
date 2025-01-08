@@ -698,22 +698,22 @@ footer {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 1rem auto;
+  margin: 0.5rem auto;  /* Reduced from 1rem */
 }
 
 .logo-img {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 60px;
   object-fit: contain;
   max-width: 100%;
-  transform: translate(-50px, 20px) scale(5.5); /* Moved left by -30px */
+  transform: translate(-50px, 10px) scale(5.5);  /* Reduced Y translation from 20px to 10px */
   margin: 0 auto;
 }
 
 @media (min-width: 768px) {
   .logo-img {
-      width: 100px;
-      height: 100px;
-      transform: translate(-50px, 30px) scale(5.5); /* Moved left by -40px */
+    width: 150px;
+    height: 75px;
+    transform: translate(-50px, 15px) scale(5.5);  /* Reduced Y translation from 30px to 15px */
   }
 }

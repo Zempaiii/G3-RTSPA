@@ -14,15 +14,12 @@
         <div class="forms-wrap">
           <!-- Sign-In Form -->
           <form autocomplete="off" class="sign-in-form" method="POST">
-            <div class="logo">
-              <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
-                <img src="{{ url_for('static', filename='images/LGO.png') }}" 
-                     alt="Logo" 
-                     width="80" 
-                     height="80" 
-                     style="filter: invert(1); margin-right: 15px; border-radius: 75%;">
-              </span>
-              <h4>SWIFT STOCK</h4>
+            <div class="logo" style="margin: 0;">
+              <img src="{{ url_for('static', filename='images/logo.svg') }}" 
+                   alt="Logo" 
+                   class="logo-img"
+                   style=" border-radius: 75%;">
+              
             </div>
 
             <div class="heading">
@@ -67,7 +64,7 @@
 
           <!-- Sign-Up Form -->
           <form autocomplete="off" class="sign-up-form" method="POST" action="{{ url_for('register') }}">
-            <div class="logo">
+            <div class="logo" style="margin: 0;">
               <img src="{{ url_for('static', filename='images/pupt.png') }}" alt="PUPT" />
               <h4>REAL-TIME STOCK PRICE ANALYZER</h4>
             </div>
@@ -128,9 +125,9 @@
         <!-- Carousel Section -->
         <div class="carousel">
           <div class="images-wrapper">
-            <img src="{{ url_for('static', filename='images/rts.png') }}" class="image img-1 show" alt="" />
-            <img src="#" class="image img-2" alt="" />
-            <img src="{{ url_for('static', filename='images/image3.png') }}" class="image img-3" alt="" />
+            <img src="{{ url_for('static', filename='images/rts.png') }}" class="image img-1 show" alt="Real-Time Stock Price Analyzer" />
+            <img src="{{ url_for('static', filename='images/datas.jpeg') }}" class="image img-2" alt="Data Structure" />
+            <img src="{{ url_for('static', filename='images/mt.png') }}" class="image img-3" alt="Group three" />
           </div>
 
           <div class="text-slider">

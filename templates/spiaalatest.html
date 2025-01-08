@@ -13,10 +13,9 @@
       <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
         <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
           <img src="{{ url_for('static', filename='images/logo.svg') }}" 
-               alt="Logo" 
-               width="80" 
-               height="80" 
-               style="filter: invert(1); margin-right: 15px; border-radius: 75%;">
+          alt="Logo" 
+          class="logo-img"
+          style="filter: invert(1) brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);">
         </span>
       </a>
       <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5">
@@ -52,7 +51,7 @@
         <button type="submit" name="timeframe" value="1M" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1M</button>
         <button type="submit" name="timeframe" value="1Y" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1Y</button>
         <button type="submit" name="timeframe" value="5Y" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">5Y</button>
-        <button type="button" id="monitorButton" class="btn {{ 'btn-success' if is_monitored else 'btn-secondary' }} btn-sm ms-2" onclick="toggleMonitorStock(event)" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;"></button>
+        <button type="button" id="monitorButton" class="btn {{ 'btn-success' if is_monitored else 'btn-secondary' }} btn-sm ms-2" onclick="toggleMonitorStock(event)" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
           {{ 'Monitoring This Stock' if is_monitored else 'Monitor This Stock' }}
         </button>
       </div>
@@ -121,6 +120,25 @@
         alert("An error occurred while toggling the monitor status.");
       });
     }
+
+    // Preserve the monitor button state on form submission
+    document.querySelectorAll('.year-buttons button[type="submit"]').forEach(button => {
+      button.addEventListener('click', () => {
+        const monitorButton = document.getElementById('monitorButton');
+        sessionStorage.setItem('monitorButtonState', monitorButton.textContent);
+        sessionStorage.setItem('monitorButtonClass', monitorButton.className);
+      });
+    });
+
+    window.addEventListener('load', () => {
+      const monitorButton = document.getElementById('monitorButton');
+      const savedState = sessionStorage.getItem('monitorButtonState');
+      const savedClass = sessionStorage.getItem('monitorButtonClass');
+      if (savedState && savedClass) {
+        monitorButton.textContent = savedState;
+        monitorButton.className = savedClass;
+      }
+    });
   </script>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
