@@ -37,3 +37,119 @@ search_bar.addEventListener("input", async () => {
   }
 });
 
+document.getElementById('bbtoggleArrowsButton').addEventListener('click', () => {
+  const chartData = JSON.parse('{{ chart_data | safe }}');
+  const upperBand = chartData.upper_band;
+  const lowerBand = chartData.lower_band;
+  const middleBand = chartData.middle_band;
+
+  const arrowAnnotations = [
+    {
+      x: chartData.dates[chartData.dates.length - 1],
+      y: upperBand,
+      xref: 'x',
+      yref: 'y',
+      text: 'Upper Band',
+      showarrow: true,
+      arrowhead: 2,
+      ax: 0,
+      ay: -40
+    },
+    {
+      x: chartData.dates[chartData.dates.length - 1],
+      y: middleBand,
+      xref: 'x',
+      yref: 'y',
+      text: 'Middle Band',
+      showarrow: true,
+      arrowhead: 2,
+      ax: 0,
+      ay: -40
+    },
+    {
+      x: chartData.dates[chartData.dates.length - 1],
+      y: lowerBand,
+      xref: 'x',
+      yref: 'y',
+      text: 'Lower Band',
+      showarrow: true,
+      arrowhead: 2,
+      ax: 0,
+      ay: -40
+    }
+  ];
+
+  Plotly.relayout('candleChart', {
+    annotations: arrowAnnotations
+  });
+});
+
+document.getElementById('vaToggleArrowsButton').addEventListener('click', () => {
+  const chartData = JSON.parse('{{ chart_data | safe }}');
+  const pvi = chartData.pvi;
+  const nvi = chartData.nvi;
+
+  const arrowAnnotations = [
+    {
+      x: chartData.dates[chartData.dates.length - 1],
+      y: pvi,
+      xref: 'x',
+      yref: 'y',
+      text: 'Positive Volume Index',
+      showarrow: true,
+      arrowhead: 2,
+      ax: 0,
+      ay: -40
+    },
+    {
+      x: chartData.dates[chartData.dates.length - 1],
+      y: nvi,
+      xref: 'x',
+      yref: 'y',
+      text: 'Negative Volume Index',
+      showarrow: true,
+      arrowhead: 2,
+      ax: 0,
+      ay: -40
+    }
+  ];
+
+  Plotly.relayout('candleChart', {
+    annotations: arrowAnnotations
+  });
+});
+
+document.getElementById('srToggleArrowsButton').addEventListener('click', () => {
+  const chartData = JSON.parse('{{ chart_data | safe }}');
+  const support = chartData.support;
+  const resistance = chartData.resistance;
+
+  const arrowAnnotations = [
+    {
+      x: chartData.dates[chartData.dates.length - 1],
+      y: support,
+      xref: 'x',
+      yref: 'y',
+      text: 'Support',
+      showarrow: true,
+      arrowhead: 2,
+      ax: 0,
+      ay: -40
+    },
+    {
+      x: chartData.dates[chartData.dates.length - 1],
+      y: resistance,
+      xref: 'x',
+      yref: 'y',
+      text: 'Resistance',
+      showarrow: true,
+      arrowhead: 2,
+      ax: 0,
+      ay: -40
+    }
+  ];
+
+  Plotly.relayout('candleChart', {
+    annotations: arrowAnnotations
+  });
+});

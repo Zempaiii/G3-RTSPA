@@ -28,8 +28,9 @@ header.navbar .logo {
     flex: 1 1 auto;
 }
 
+/* Toggle button styles */
 header.navbar .menu-toggle {
-    display: none;
+    display: block;
     background: none;
     border: none;
     color: #fff;

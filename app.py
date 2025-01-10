@@ -62,6 +62,36 @@ def calculate_sma(prices, period):
         sma.append(sum(prices[i:i + period]) / period)
     return sma
 
+def calculate_bollinger_bands(prices, period=20, num_std_dev=2):
+    if len(prices) < period:
+        return None, None, None  # Not enough data to calculate Bollinger Bands
+
+    sma = calculate_sma(prices, period)
+    std_dev = [pd.Series(prices[i:i + period]).std() for i in range(len(prices) - period + 1)]
+    upper_band = [sma[i] + num_std_dev * std_dev[i] for i in range(len(sma))]
+    lower_band = [sma[i] - num_std_dev * std_dev[i] for i in range(len(sma))]
+    return upper_band, sma, lower_band
+
+def calculate_volume_analysis(prices, volumes):
+    pvi = [1000]  # Positive Volume Index
+    nvi = [1000]  # Negative Volume Index
+
+    for i in range(1, len(prices)):
+        if volumes[i] > volumes[i - 1]:
+            pvi.append(pvi[-1] + (prices[i] - prices[i - 1]) / prices[i - 1] * pvi[-1])
+            nvi.append(nvi[-1])
+        else:
+            nvi.append(nvi[-1] + (prices[i] - prices[i - 1]) / prices[i - 1] * nvi[-1])
+            pvi.append(pvi[-1])
+
+    return pvi, nvi
+
+def calculate_support_resistance(prices):
+    pivot = (max(prices) + min(prices) + prices[-1]) / 3
+    resistance = 2 * pivot - min(prices)
+    support = 2 * pivot - max(prices)
+    return support, resistance
+
 # search suggestion logic
 def search_stocks(query):
     try:
@@ -116,7 +146,7 @@ def fetch_api_data(symbol, timeframe):
         return None
     return response.json()
 
-def prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger=None, volume=None):
+def prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger=None, volume=None, support_resistance=None):
     results = data.get('bars', [])
     dates = [entry["t"] for entry in results]
     dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
@@ -142,6 +172,21 @@ def prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger
             line=dict(color='blue', width=2)
         ))
 
+    if support_resistance:
+        fig.add_trace(go.Scatter(
+            x=[dates[0], dates[-1]],
+            y=[support_resistance['support'], support_resistance['support']],
+            mode='lines',
+            name='Support',
+            line=dict(color='green', width=2, dash='dash')
+        ))
+        fig.add_trace(go.Scatter(
+            x=[dates[0], dates[-1]],
+            y=[support_resistance['resistance'], support_resistance['resistance']],
+            mode='lines',
+            name='Resistance',
+            line=dict(color='red', width=2, dash='dash')
+        ))
 
     fig.update_layout(
         xaxis_title="Date",
@@ -474,196 +519,29 @@ def create_app():
         # Define dates
         dates = [entry["t"] for entry in results]
         dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
+        close_prices = [entry["c"] for entry in results]
 
         # Bollinger Bands
-        close_prices = [entry["c"] for entry in results]
-        window = 20
-        num_std_dev = 2
-
-        rolling_mean = pd.Series(close_prices).rolling(window).mean()
-        rolling_std = pd.Series(close_prices).rolling(window).std()
-
-        upper_band = rolling_mean + (rolling_std * num_std_dev)
-        lower_band = rolling_mean - (rolling_std * num_std_dev)
-
-        # Initialize the figure
-        fig = go.Figure()
-
-        # Add Bollinger Bands to the plot
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=upper_band,
-            name='Upper Band',
-            line=dict(color='rgba(255, 0, 0, 0.5)')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=rolling_mean,
-            name='Middle Band',
-            line=dict(color='rgba(0, 0, 255, 0.5)')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=lower_band,
-            name='Lower Band',
-            line=dict(color='rgba(0, 255, 0, 0.5)')
-        ))
-
-        # Volume analysis
+        upper_band, middle_band, lower_band = calculate_bollinger_bands(close_prices)
+    
+        # Volume Analysis
         volumes = [entry["v"] for entry in results]
-        pvi = [1000]  # Positive Volume Index starts at 1000
-        nvi = [1000]  # Negative Volume Index starts at 1000
-
-        for i in range(1, len(close_prices)):
-            if volumes[i] > volumes[i - 1]:
-                pvi.append(pvi[-1] + ((close_prices[i] - close_prices[i - 1]) / close_prices[i - 1]) * pvi[-1])
-                nvi.append(nvi[-1])
-            else:
-                nvi.append(nvi[-1] + ((close_prices[i] - close_prices[i - 1]) / close_prices[i - 1]) * nvi[-1])
-                pvi.append(pvi[-1])
-
-        # Add PVI and NVI to the plot
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=pvi,
-            name='Positive Volume Index',
-            line=dict(color='rgba(0, 255, 255, 0.5)')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=nvi,
-            name='Negative Volume Index',
-            line=dict(color='rgba(255, 165, 0, 0.5)')
-        ))
-
-        # Add a button or toggle for PVI and NVI
-        fig.update_layout(
-            updatemenus=[
-                dict(
-                    type="buttons",
-                    direction="left",
-                    buttons=list([
-                        dict(
-                            args=["visible", [True, True, True, True, True, True, True, True]],
-                            label="Show All",
-                            method="restyle"
-                        ),
-                        dict(
-                            args=["visible", [True, True, True, True, False, False, False, False]],
-                            label="Hide Volume Indexes",
-                            method="restyle"
-                        ),
-                        dict(
-                            args=["visible", [False, False, False, False, True, True, True, True]],
-                            label="Show Volume Indexes Only",
-                            method="restyle"
-                        )
-                    ]),
-                    pad={"r": 10, "t": 10},
-                    showactive=True,
-                    x=0.11,
-                    xanchor="left",
-                    y=1.15,
-                    yanchor="top"
-                ),
-            ]
-        )
-
-        #Support and resistance
-        # Support and Resistance using Pivot Points Method
-        pivot_point = (results[0]['h'] + results[0]['l'] + results[0]['c']) / 3
-        resistance1 = (2 * pivot_point) - results[0]['l']
-        support1 = (2 * pivot_point) - results[0]['h']
-        resistance2 = pivot_point + (results[0]['h'] - results[0]['l'])
-        support2 = pivot_point - (results[0]['h'] - results[0]['l'])
-        resistance3 = results[0]['h'] + 2 * (pivot_point - results[0]['l'])
-        support3 = results[0]['l'] - 2 * (results[0]['h'] - pivot_point)
-
-        # Add Support and Resistance levels to the plot
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=[pivot_point] * len(dates),
-            name='Pivot Point',
-            line=dict(color='rgba(128, 0, 128, 0.5)', dash='dash')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=[resistance1] * len(dates),
-            name='Resistance 1',
-            line=dict(color='rgba(255, 0, 0, 0.5)', dash='dash')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=[support1] * len(dates),
-            name='Support 1',
-            line=dict(color='rgba(0, 255, 0, 0.5)', dash='dash')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=[resistance2] * len(dates),
-            name='Resistance 2',
-            line=dict(color='rgba(255, 0, 0, 0.5)', dash='dot')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=[support2] * len(dates),
-            name='Support 2',
-            line=dict(color='rgba(0, 255, 0, 0.5)', dash='dot')
-        ))
-
-        fig.add_trace(go.Scatter( 
-            x=dates,
-            y=[resistance3] * len(dates),
-            name='Resistance 3',
-            line=dict(color='rgba(255, 0, 0, 0.5)', dash='dashdot')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=[support3] * len(dates),
-            name='Support 3',
-            line=dict(color='rgba(0, 255, 0, 0.5)', dash='dashdot')
-        ))
-
-        # Add a button or toggle for Support and Resistance levels
-        fig.update_layout(
-            updatemenus=[
-                dict(
-                    type="buttons",
-                    direction="left",
-                    buttons=list([
-                        dict(
-                            args=["visible", [True, True, True, True, True, True, True, True, True, True, True, True]],
-                            label="Show All",
-                            method="restyle"
-                        ),
-                        dict(
-                            args=["visible", [True, True, True, True, False, False, False, False, False, False, False, False]],
-                            label="Hide Support/Resistance",
-                            method="restyle"
-                        ),
-                        dict(
-                            args=["visible", [False, False, False, False, True, True, True, True, True, True, True, True]],
-                            label="Show Support/Resistance Only",
-                            method="restyle"
-                        )
-                    ]),
-                    pad={"r": 10, "t": 10},
-                    showactive=True,
-                    x=0.11,
-                    xanchor="left",
-                    y=1.15,
-                    yanchor="top"
-                ),
-            ]
-        )
+        pvi, nvi = calculate_volume_analysis(close_prices, volumes)
+    
+        # Support and Resistance
+        support, resistance = calculate_support_resistance(close_prices)
+    
+        chart_data = prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger={
+            'upper_band': upper_band,
+            'middle_band': middle_band,
+            'lower_band': lower_band
+        }, volume={
+            'pvi': pvi,
+            'nvi': nvi
+        }, support_resistance={
+            'support': support,
+            'resistance': resistance
+        })
         
         # Check if the symbol is in the monitoring table for the user
         conn = sqlite3.connect('tickers.db')
@@ -672,7 +550,6 @@ def create_app():
         is_monitored = cursor.fetchone() is not None
         conn.close()
         
-        chart_data = prepare_candle_plot(data, volume=volumes, bollinger=upper_band)
         return render_template('spiaalatest.html', data=analysis, symbol=symbol, name=name, analysis=analysis, chart_data=chart_data, is_monitored=is_monitored)
    
     @app.route('/set_stock') 
@@ -731,3 +608,6 @@ def create_app():
     #     return render_template('error.html', error_message=e), 500
 
     return app
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=True)

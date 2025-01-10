@@ -14,8 +14,11 @@
         <div class="forms-wrap">
           <!-- Forgot Password Form -->
           <form autocomplete="off" class="forgot-password-form" method="POST">
-            <div class="logo">
-              <h4>SWIFT STOCK</h4>
+            <div class="logo" style="display: flex; justify-content: center;">
+              <img src="{{ url_for('static', filename='images/logo.svg') }}" 
+                   alt="Logo" 
+                   class="logo-img"
+                   style=" border-radius: 75%; margin: 0; height: 30px; width: 30px;">
             </div>
 
             <div class="heading">
