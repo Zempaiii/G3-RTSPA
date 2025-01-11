@@ -188,6 +188,45 @@ def prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger
             line=dict(color='red', width=2, dash='dash')
         ))
 
+    if bollinger:
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=bollinger['upper_band'],
+            mode='lines',
+            name='Upper Band',
+            line=dict(color='rgba(255, 0, 0, 0.5)')
+        ))
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=bollinger['middle_band'],
+            mode='lines',
+            name='Middle Band',
+            line=dict(color='rgba(0, 255, 0, 0.5)')
+        ))
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=bollinger['lower_band'],
+            mode='lines',
+            name='Lower Band',
+            line=dict(color='rgba(0, 0, 255, 0.5)')
+        ))
+
+    if volume:
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=volume['pvi'],
+            mode='lines',
+            name='Positive Volume Index',
+            line=dict(color='rgba(255, 165, 0, 0.5)')
+        ))
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=volume['nvi'],
+            mode='lines',
+            name='Negative Volume Index',
+            line=dict(color='rgba(75, 0, 130, 0.5)')
+        ))
+
     fig.update_layout(
         xaxis_title="Date",
         yaxis_title="Price (USD)",
