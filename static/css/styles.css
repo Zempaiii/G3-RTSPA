@@ -11,6 +11,15 @@ body {
     line-height: 1.6;
 }
 
+#rsi-chart-container {
+    display: none; /* Initially hidden */
+    margin-top: 20px;
+}
+
+#macd-chart-container {
+    display: none; /* Initially hidden */
+    margin-top: 20px;
+}
 header.navbar {
     background: #333;
     color: #fff;
@@ -266,7 +275,6 @@ slider.round:before {
 .logo {
     display: flex;
     justify-content: flex-start;
-    align-items: ;
     margin: 1rem auto;
   }
   
@@ -286,4 +294,28 @@ slider.round:before {
         transform: translate(-35px, .5px) scale(2.5); /* Moved left by -40px */
     }
   }
+
+  .indicator-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px; 
+    border-bottom: 1px solid #ccc;
+    border-left: 12px solid #ffffff;
+    border-right: 12px solid #ffffff;
+    height: 45px;
+    width: auto;
+}
+
+.indicator-text {
+    font-size: 16px;
+    flex-grow: 1;
+}
+
+.action-button {
+    border: 1px solid #ccc;
+    height: 30px;
+    width: 81.5px;
+    white-space: nowrap;
+}
 
