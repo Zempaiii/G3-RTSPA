@@ -556,6 +556,6 @@ def create_app():
     #     return render_template('error.html', error_message=e), 500
 
     return app
+
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True)
