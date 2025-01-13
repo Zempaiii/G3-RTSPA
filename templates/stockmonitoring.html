@@ -60,7 +60,7 @@
     </thead>
     <tbody>
       {% for stock in stocks %}
-      <tr>
+      <tr onclick="setStockAndRedirect('{{ stock.symbol }}', '{{ stock.name }}')" style="cursor: pointer;">
         <td>{{stock.symbol}}</td>
         <td>{{stock.name}}</td>
         <td>{{stock.price}}</td>
@@ -70,6 +70,7 @@
         <td>{{stock.volume}}</td>
       </tr>
       {% endfor %}
+    </tbody>
   </table>
   <div class="row">
   </div>
