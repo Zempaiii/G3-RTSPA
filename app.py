@@ -1,8 +1,6 @@
 from flask import request, jsonify, Flask, render_template, session, redirect, url_for, flash
 import os, sqlite3, requests, plotly, random
-import smtplib
 from datetime import datetime, timedelta
-from email.mime.text import MIMEText
 from werkzeug.security import check_password_hash, generate_password_hash
 import re
 import plotly.graph_objects as go
@@ -288,10 +286,6 @@ def create_app():
                 return jsonify({"success": False, "message": "Invalid email or password"})
             
         return render_template('login.html')
-
-    def is_valid_email(email):
-        regex = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$'
-        return re.match(regex, email)
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
