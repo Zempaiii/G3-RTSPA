@@ -259,7 +259,7 @@ def create_app():
     # homepage backend
     @app.route('/')
     def start():
-        return check_login()
+        return redirect(url_for('home'))
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -389,19 +389,20 @@ def create_app():
                 "APCA-API-KEY-ID": "PK9XXY01BXT1F6L9EFZ4",
                 "APCA-API-SECRET-KEY": "vdlBS5PgF4Lp7SgyYm42MCF5jm8JUlpPMEGvLnT3"
         }
-        symbol_data = [{"symbol": "", "name": "", "price": 0, "percent": 0, "high": 0, "low": 0, "volume": 0} for _ in range(18)]
+        symbol_data = [{"symbol": "", "name": "", "price": 0, "percent": 0, "high": 0, "low": 0, "volume": 0} for _ in range(12)]
+        url = f"https://data.alpaca.markets/v1beta1/screener/stocks/most-actives?by=trades&top=20"
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code != 200:
+            print(f"Error fetching data: {response.text}")
+            return render_template('index.html', stocks=symbol_data)
+        
+        sample = response.json().get("most_actives", [])
+        os.system('cls')
+        sample = random.sample(sample, 12)
         for data in symbol_data:
-            url = f"https://data.alpaca.markets/v1beta1/screener/stocks/most-actives?by=trades&top=20"
-            response = requests.get(url, headers=headers)
-            
-            if response.status_code != 200:
-                print(f"Error fetching data: {response.text}")
-                return render_template('index.html', stocks=symbol_data)
-            
-            results = response.json().get("most_actives", [])
-            selected_result = None
-            while not selected_result or any(d["symbol"] == selected_result["symbol"] for d in symbol_data):
-                selected_result = results[random.randint(0, len(results) - 1)]
+            selected_result = sample.pop()
+            print(selected_result)
             data["symbol"] = selected_result["symbol"]
             data["name"] = search_stocks(data["symbol"])[0].get("Name")
             data["volume"] = f'{(selected_result["volume"] / 1000000):.2f}'
@@ -415,8 +416,6 @@ def create_app():
             data["percent"] = f'{(((results[0]["c"] - results[0]["o"]) / results[1]["o"]) * 100):.2f}'
             data["high"] = f'{results[0]["h"]:.2f}'
             data["low"] = f'{results[0]["l"]:.2f}'
-            
-            
         
         return render_template('index.html', stocks=symbol_data)
 
