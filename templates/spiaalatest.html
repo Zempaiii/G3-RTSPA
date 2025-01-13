@@ -13,9 +13,10 @@
       <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
         <span class="bs-icon-sm d-flex justify-content-center align-items-center me-3">
           <img src="{{ url_for('static', filename='images/logo.svg') }}" 
-          alt="Logo" 
-          class="logo-img"
-          style="filter: invert(1) brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);">
+               alt="Logo" 
+               width="80" 
+               height="80" 
+               style="filter: invert(1); margin-right: 15px; border-radius: 75%;">
         </span>
       </a>
       <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5">
@@ -43,12 +44,6 @@
   <div id="candle_graph" class="container-fluid" style="margin-top: 1rem;">
     <div id="candleChart"></div>
   </div>
-  <div id="macd-chart-container">
-    <canvas id="histogramChart" width="800" height="200"></canvas>
-</div>
-<div id="rsi-chart-container">
-<canvas id="rsiChart" width="800" height="200"></canvas>
-</div>
   <!-- Timeframe Buttons -->
   <form class="year-buttons" method="POST">
     <div class="container text-center mt-3">
@@ -57,7 +52,7 @@
         <button type="submit" name="timeframe" value="1M" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1M</button>
         <button type="submit" name="timeframe" value="1Y" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">1Y</button>
         <button type="submit" name="timeframe" value="5Y" class="btn btn-secondary btn-sm" style="border: 1px solid #ccc; height: 30px;">5Y</button>
-        <button type="button" id="monitorButton" class="btn {{ 'btn-success' if is_monitored else 'btn-secondary' }} btn-sm ms-2" onclick="toggleMonitorStock(event)" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
+        <button type="button" id="monitorButton" class="btn {{ 'btn-success' if is_monitored else 'btn-secondary' }} btn-sm ms-2" onclick="toggleMonitorStock(event)" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;"></button>
           {{ 'Monitoring This Stock' if is_monitored else 'Monitor This Stock' }}
         </button>
       </div>
@@ -76,32 +71,15 @@
               <li class="list-group-item"><strong>Trend and Momentum Indicators</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Moving Average (SMA):</span><span>{{data[4]}}</span></li>
               <li class="list-group-item d-flex justify-content-between"><span>Exponential Moving Average (EMA):</span><span>{{data[5]}}</span></li>
-              <div class="indicator-row">
-                <div class="indicator-text">MACD (Moving Average Convergence Divergence):</div>
-                <button type="button" onclick="toggleMACDChart()" class="btn btn-secondary btn-sm action-button">
-                    Click Here
-                </button>
-            </div>
-              <div class="indicator-row">
-    <div class="indicator-text">RSI (Relative Strength Index):</div>
-    <button type="button" onclick="toggleRSIChart()" class="btn btn-secondary btn-sm action-button">
-        Click Here
-    </button>
-</div>
-              <li class="list-group-item"><strong>  Volatility and Risk Indicators</strong></li>
-              <li class="list-group-item d-flex justify-content-between"><span>Bollinger Bands:</span><span>{{data[8]}}</span>
-              <button type="button" id="bbtoggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
-                Click Here
-              </button></li>
-              <li class="list-group-item d-flex justify-content-between"><span>Volume Analysis:</span><span>{{data[9]}}</span>
-              <button type="button" id="vaToggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
-                Click Here
-              </button></li>
+              <li class="list-group-item d-flex justify-content-between"><span>MACD (Moving Average Convergence Divergence):</span><span>{{data[6]}}</span></li>
+              <li class="list-group-item d-flex justify-content-between"><span>RSI (Relative Strength Index):</span><span>{{data[7]}}</span></li>
+              <li class="list-group-item"><strong>Volatility and Risk Indicators</strong></li>
+              <li class="list-group-item d-flex justify-content-between"><span>Bollinger Bands:</span><span>{{data[8]}}</span></li>
+              <li class="list-group-item d-flex justify-content-between"><span>Volume Analysis:</span><span>{{data[9]}}</span></li>
+              <li class="list-group-item"><strong>Valuation Metrics</strong></li>
+              <li class="list-group-item d-flex justify-content-between"><span>P/E Ratio (Price-to-Earnings Ratio):</span><span>{{data[10]}}</span></li>
               <li class="list-group-item"><strong>Technical Support and Resistance</strong></li>
-              <li class="list-group-item d-flex justify-content-between"><span>Support and Resistance:</span><span>{{data[11]}}</span>
-              <button type="button" id="srToggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
-                Click Here
-              </button></li>
+              <li class="list-group-item d-flex justify-content-between"><span>Support and Resistance:</span><span>{{data[11]}}</span></li>
             </ul>
           </div>
         </div>
@@ -143,142 +121,6 @@
         alert("An error occurred while toggling the monitor status.");
       });
     }
-
-    // Preserve the monitor button state on form submission
-    document.querySelectorAll('.year-buttons button[type="submit"]').forEach(button => {
-      button.addEventListener('click', () => {
-        const monitorButton = document.getElementById('monitorButton');
-        sessionStorage.setItem('monitorButtonState', monitorButton.textContent);
-        sessionStorage.setItem('monitorButtonClass', monitorButton.className);
-      });
-    });
-
-    window.addEventListener('load', () => {
-      const monitorButton = document.getElementById('monitorButton');
-      const savedState = sessionStorage.getItem('monitorButtonState');
-      const savedClass = sessionStorage.getItem('monitorButtonClass');
-      if (savedState && savedClass) {
-        monitorButton.textContent = savedState;
-        monitorButton.className = savedClass;
-      }
-    });
-
-    document.getElementById('bbtoggleArrowsButton').addEventListener('click', () => {
-      const chartData = JSON.parse('{{ chart_data | safe }}');
-      const upperBand = chartData.upper_band;
-      const lowerBand = chartData.lower_band;
-      const middleBand = chartData.middle_band;
-
-      const arrowAnnotations = [
-        {
-          x: chartData.dates[chartData.dates.length - 1],
-          y: upperBand,
-          xref: 'x',
-          yref: 'y',
-          text: 'Upper Band',
-          showarrow: true,
-          arrowhead: 2,
-          ax: 0,
-          ay: -40
-        },
-        {
-          x: chartData.dates[chartData.dates.length - 1],
-          y: middleBand,
-          xref: 'x',
-          yref: 'y',
-          text: 'Middle Band',
-          showarrow: true,
-          arrowhead: 2,
-          ax: 0,
-          ay: -40
-        },
-        {
-          x: chartData.dates[chartData.dates.length - 1],
-          y: lowerBand,
-          xref: 'x',
-          yref: 'y',
-          text: 'Lower Band',
-          showarrow: true,
-          arrowhead: 2,
-          ax: 0,
-          ay: -40
-        }
-      ];
-
-      Plotly.relayout('candleChart', {
-        annotations: arrowAnnotations
-      });
-    });
-
-    document.getElementById('vaToggleArrowsButton').addEventListener('click', () => {
-      const chartData = JSON.parse('{{ chart_data | safe }}');
-      const pvi = chartData.pvi;
-      const nvi = chartData.nvi;
-
-      const arrowAnnotations = [
-        {
-          x: chartData.dates[chartData.dates.length - 1],
-          y: pvi,
-          xref: 'x',
-          yref: 'y',
-          text: 'Positive Volume Index',
-          showarrow: true,
-          arrowhead: 2,
-          ax: 0,
-          ay: -40
-        },
-        {
-          x: chartData.dates[chartData.dates.length - 1],
-          y: nvi,
-          xref: 'x',
-          yref: 'y',
-          text: 'Negative Volume Index',
-          showarrow: true,
-          arrowhead: 2,
-          ax: 0,
-          ay: -40
-        }
-      ];
-
-      Plotly.relayout('candleChart', {
-        annotations: arrowAnnotations
-      });
-    });
-
-    document.getElementById('srToggleArrowsButton').addEventListener('click', () => {
-      const chartData = JSON.parse('{{ chart_data | safe }}');
-      const support = chartData.support;
-      const resistance = chartData.resistance;
-
-      const arrowAnnotations = [
-        {
-          x: chartData.dates[chartData.dates.length - 1],
-          y: support,
-          xref: 'x',
-          yref: 'y',
-          text: 'Support',
-          showarrow: true,
-          arrowhead: 2,
-          ax: 0,
-          ay: -40
-        },
-        {
-          x: chartData.dates[chartData.dates.length - 1],
-          y: resistance,
-          xref: 'x',
-          yref: 'y',
-          text: 'Resistance',
-          showarrow: true,
-          arrowhead: 2,
-          ax: 0,
-          ay: -40
-        }
-      ];
-
-      Plotly.relayout('candleChart', {
-        annotations: arrowAnnotations
-      });
-    });
   </script>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
@@ -311,88 +153,11 @@
       const newChartData = mockData[timeframe] || chartData; // Use fallback data
       Plotly.react('candleChart', newChartData.data, newChartData.layout);
     }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // Histogram Chart (Mock MACD Data)
-        const histogramCtx = document.getElementById('histogramChart').getContext('2d');
-            new Chart(histogramCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [
-                        {
-                            label: 'MACD Histogram',
-                            data: [1, -1, 2, -2, 3, -1], // Mock MACD data
-                            backgroundColor: ['#4caf50', '#f44336', '#4caf50', '#f44336', '#4caf50', '#f44336']
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: { beginAtZero: true },
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-
-        // RSI Chart (Mock RSI Data)
-        const rsiCtx = document.getElementById('rsiChart').getContext('2d');
-        const rsiChart = new Chart(rsiCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [
-                    {
-                        label: 'RSI',
-                        data: [45, 55, 65, 60, 70, 50],
-                        borderColor: 'purple',
-                        borderWidth: 2,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: { beginAtZero: true },
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
-        });
-
-        // Toggle RSI Chart Visibility
-        function toggleRSIChart() {
-            const rsiContainer = document.getElementById('rsi-chart-container');
-            if (rsiContainer.style.display === 'none') {
-                rsiContainer.style.display = 'block';
-            } else {
-                rsiContainer.style.display = 'none';
-            }
-        }
-
-        function toggleMACDChart() {
-                const macdContainer = document.getElementById('macd-chart-container');
-                if (macdContainer.style.display === 'none') {
-                    macdContainer.style.display = 'block';
-                } else {
-                    macdContainer.style.display = 'none';
-                }
-            }
-
-            // Attach toggle functions to the global window object
-            window.toggleRSIChart = toggleRSIChart;
-            window.toggleMACDChart = toggleMACDChart;
-    });
   </script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
