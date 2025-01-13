@@ -78,29 +78,26 @@
               <li class="list-group-item d-flex justify-content-between"><span>Exponential Moving Average (EMA):</span><span>{{data[5]}}</span></li>
               <div class="indicator-row">
                 <div class="indicator-text">MACD (Moving Average Convergence Divergence):</div>
-                <button type="button" onclick="toggleMACDChart()" class="btn btn-secondary btn-sm action-button">
-                    Click Here
+                <button type="button" onclick="toggleMACDChart()" class="btn btn-secondary btn-sm action-button-1">
+                    Toggle Histogram
                 </button>
             </div>
               <div class="indicator-row">
     <div class="indicator-text">RSI (Relative Strength Index):</div>
     <button type="button" onclick="toggleRSIChart()" class="btn btn-secondary btn-sm action-button">
-        Click Here
+        Toggle
     </button>
 </div>
               <li class="list-group-item"><strong>  Volatility and Risk Indicators</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Bollinger Bands:</span><span>{{data[8]}}</span>
-              <button type="button" id="bbtoggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
-                Click Here
-              </button></li>
               <li class="list-group-item d-flex justify-content-between"><span>Volume Analysis:</span><span>{{data[9]}}</span>
               <button type="button" id="vaToggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
-                Click Here
+                Toggle
               </button></li>
               <li class="list-group-item"><strong>Technical Support and Resistance</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Support and Resistance:</span><span>{{data[11]}}</span>
               <button type="button" id="srToggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
-                Click Here
+                Toggle
               </button></li>
             </ul>
           </div>
@@ -322,8 +319,8 @@
                     datasets: [
                         {
                             label: 'MACD Histogram',
-                            data: [1, -1, 2, -2, 3, -1], // Mock MACD data
-                            backgroundColor: ['#4caf50', '#f44336', '#4caf50', '#f44336', '#4caf50', '#f44336']
+                            data: [1, -1, 2, -2, 3, -3], // Mock MACD data
+                            backgroundColor: ['#4caf50', '#f44336', '#4caf50', '#f44336', '#4caf50', '#f44336'] 
                         }
                     ]
                 },
