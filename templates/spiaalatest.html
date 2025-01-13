@@ -71,15 +71,29 @@
               <li class="list-group-item"><strong>Trend and Momentum Indicators</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Moving Average (SMA):</span><span>{{data[4]}}</span></li>
               <li class="list-group-item d-flex justify-content-between"><span>Exponential Moving Average (EMA):</span><span>{{data[5]}}</span></li>
-              <li class="list-group-item d-flex justify-content-between"><span>MACD (Moving Average Convergence Divergence):</span><span>{{data[6]}}</span></li>
-              <li class="list-group-item d-flex justify-content-between"><span>RSI (Relative Strength Index):</span><span>{{data[7]}}</span></li>
-              <li class="list-group-item"><strong>Volatility and Risk Indicators</strong></li>
-              <li class="list-group-item d-flex justify-content-between"><span>Bollinger Bands:</span><span>{{data[8]}}</span></li>
-              <li class="list-group-item d-flex justify-content-between"><span>Volume Analysis:</span><span>{{data[9]}}</span></li>
-              <li class="list-group-item"><strong>Valuation Metrics</strong></li>
-              <li class="list-group-item d-flex justify-content-between"><span>P/E Ratio (Price-to-Earnings Ratio):</span><span>{{data[10]}}</span></li>
+              <div class="indicator-row">
+                <div class="indicator-text">MACD (Moving Average Convergence Divergence):</div>
+                <button type="button" onclick="toggleMACDChart()" class="btn btn-secondary btn-sm action-button-1">
+                    Toggle Histogram
+                </button>
+            </div>
+              <div class="indicator-row">
+    <div class="indicator-text">RSI (Relative Strength Index):</div>
+    <button type="button" onclick="toggleRSIChart()" class="btn btn-secondary btn-sm action-button">
+        Toggle
+    </button>
+</div>
+              <li class="list-group-item"><strong>  Volatility and Risk Indicators</strong></li>
+              <li class="list-group-item d-flex justify-content-between"><span>Bollinger Bands:</span><span>{{data[8]}}</span>
+              <li class="list-group-item d-flex justify-content-between"><span>Volume Analysis:</span><span>{{data[9]}}</span>
+              <button type="button" id="vaToggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
+                Toggle
+              </button></li>
               <li class="list-group-item"><strong>Technical Support and Resistance</strong></li>
-              <li class="list-group-item d-flex justify-content-between"><span>Support and Resistance:</span><span>{{data[11]}}</span></li>
+              <li class="list-group-item d-flex justify-content-between"><span>Support and Resistance:</span><span>{{data[11]}}</span>
+              <button type="button" id="srToggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
+                Toggle
+              </button></li>
             </ul>
           </div>
         </div>
@@ -121,6 +135,25 @@
         alert("An error occurred while toggling the monitor status.");
       });
     }
+
+    // Preserve the monitor button state on form submission
+    document.querySelectorAll('.year-buttons button[type="submit"]').forEach(button => {
+      button.addEventListener('click', () => {
+        const monitorButton = document.getElementById('monitorButton');
+        sessionStorage.setItem('monitorButtonState', monitorButton.textContent);
+        sessionStorage.setItem('monitorButtonClass', monitorButton.className);
+      });
+    });
+
+    window.addEventListener('load', () => {
+      const monitorButton = document.getElementById('monitorButton');
+      const savedState = sessionStorage.getItem('monitorButtonState');
+      const savedClass = sessionStorage.getItem('monitorButtonClass');
+      if (savedState && savedClass) {
+        monitorButton.textContent = savedState;
+        monitorButton.className = savedClass;
+      }
+    });
   </script>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
@@ -153,6 +186,82 @@
       const newChartData = mockData[timeframe] || chartData; // Use fallback data
       Plotly.react('candleChart', newChartData.data, newChartData.layout);
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Histogram Chart (Mock MACD Data)
+        const histogramCtx = document.getElementById('histogramChart').getContext('2d');
+            new Chart(histogramCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        {
+                            label: 'MACD Histogram',
+                            data: [1, -1, 2, -2, 3, -3], // Mock MACD data
+                            backgroundColor: ['#4caf50', '#f44336', '#4caf50', '#f44336', '#4caf50', '#f44336'] 
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { beginAtZero: true },
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+        // RSI Chart (Mock RSI Data)
+        const rsiCtx = document.getElementById('rsiChart').getContext('2d');
+        const rsiChart = new Chart(rsiCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'RSI',
+                        data: [45, 55, 65, 60, 70, 50],
+                        borderColor: 'purple',
+                        borderWidth: 2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { beginAtZero: true },
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Toggle RSI Chart Visibility
+        function toggleRSIChart() {
+            const rsiContainer = document.getElementById('rsi-chart-container');
+            if (rsiContainer.style.display === 'none') {
+                rsiContainer.style.display = 'block';
+            } else {
+                rsiContainer.style.display = 'none';
+            }
+        }
+
+        function toggleMACDChart() {
+                const macdContainer = document.getElementById('macd-chart-container');
+                if (macdContainer.style.display === 'none') {
+                    macdContainer.style.display = 'block';
+                } else {
+                    macdContainer.style.display = 'none';
+                }
+            }
+
+            // Attach toggle functions to the global window object
+            window.toggleRSIChart = toggleRSIChart;
+            window.toggleMACDChart = toggleMACDChart;
+    });
   </script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

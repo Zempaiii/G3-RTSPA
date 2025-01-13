@@ -14,11 +14,15 @@ body {
 #rsi-chart-container {
     display: none; /* Initially hidden */
     margin-top: 20px;
+    margin-left: 65px;
+    padding-right: 230px;
 }
 
 #macd-chart-container {
     display: none; /* Initially hidden */
     margin-top: 20px;
+    margin-left: 70px;
+    padding-right: 240px;
 }
 header.navbar {
     background: #333;
@@ -143,9 +147,9 @@ nav {
 }
 
 #candleChart {
-    width: 100%;
-    height: 550px;
-    margin: 0 auto;
+        width: 100%;
+        height: 550px;
+        margin: 0 auto;
 }
 
 :root {
@@ -315,7 +319,13 @@ slider.round:before {
 .action-button {
     border: 1px solid #ccc;
     height: 30px;
-    width: 81.5px;
+    width: 59.5px;
     white-space: nowrap;
 }
 
+.action-button-1 {
+    border: 1px solid #ccc;
+    height: 30px;
+    width: 130px;
+    white-space: nowrap;
+}
