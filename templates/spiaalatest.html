@@ -43,6 +43,12 @@
   <div id="candle_graph" class="container-fluid" style="margin-top: 1rem;">
     <div id="candleChart"></div>
   </div>
+  <div id="macd-chart-container">
+    <canvas id="histogramChart" width="800" height="200"></canvas>
+</div>
+<div id="rsi-chart-container">
+<canvas id="rsiChart" width="800" height="200"></canvas>
+</div>
   <!-- Timeframe Buttons -->
   <form class="year-buttons" method="POST">
     <div class="container text-center mt-3">
@@ -70,9 +76,19 @@
               <li class="list-group-item"><strong>Trend and Momentum Indicators</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Moving Average (SMA):</span><span>{{data[4]}}</span></li>
               <li class="list-group-item d-flex justify-content-between"><span>Exponential Moving Average (EMA):</span><span>{{data[5]}}</span></li>
-              <li class="list-group-item d-flex justify-content-between"><span>MACD (Moving Average Convergence Divergence):</span><span>{{data[6]}}</span></li>
-              <li class="list-group-item d-flex justify-content-between"><span>RSI (Relative Strength Index):</span><span>{{data[7]}}</span></li>
-              <li class="list-group-item"><strong>Volatility and Risk Indicators</strong></li>
+              <div class="indicator-row">
+                <div class="indicator-text">MACD (Moving Average Convergence Divergence):</div>
+                <button type="button" onclick="toggleMACDChart()" class="btn btn-secondary btn-sm action-button">
+                    Click Here
+                </button>
+            </div>
+              <div class="indicator-row">
+    <div class="indicator-text">RSI (Relative Strength Index):</div>
+    <button type="button" onclick="toggleRSIChart()" class="btn btn-secondary btn-sm action-button">
+        Click Here
+    </button>
+</div>
+              <li class="list-group-item"><strong>  Volatility and Risk Indicators</strong></li>
               <li class="list-group-item d-flex justify-content-between"><span>Bollinger Bands:</span><span>{{data[8]}}</span>
               <button type="button" id="bbtoggleArrowsButton" class="btn btn-secondary btn-sm ms-2" style="border: 1px solid #ccc; height: 30px; width: auto; white-space: nowrap;">
                 Click Here
@@ -295,11 +311,88 @@
       const newChartData = mockData[timeframe] || chartData; // Use fallback data
       Plotly.react('candleChart', newChartData.data, newChartData.layout);
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Histogram Chart (Mock MACD Data)
+        const histogramCtx = document.getElementById('histogramChart').getContext('2d');
+            new Chart(histogramCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        {
+                            label: 'MACD Histogram',
+                            data: [1, -1, 2, -2, 3, -1], // Mock MACD data
+                            backgroundColor: ['#4caf50', '#f44336', '#4caf50', '#f44336', '#4caf50', '#f44336']
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { beginAtZero: true },
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+        // RSI Chart (Mock RSI Data)
+        const rsiCtx = document.getElementById('rsiChart').getContext('2d');
+        const rsiChart = new Chart(rsiCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'RSI',
+                        data: [45, 55, 65, 60, 70, 50],
+                        borderColor: 'purple',
+                        borderWidth: 2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { beginAtZero: true },
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Toggle RSI Chart Visibility
+        function toggleRSIChart() {
+            const rsiContainer = document.getElementById('rsi-chart-container');
+            if (rsiContainer.style.display === 'none') {
+                rsiContainer.style.display = 'block';
+            } else {
+                rsiContainer.style.display = 'none';
+            }
+        }
+
+        function toggleMACDChart() {
+                const macdContainer = document.getElementById('macd-chart-container');
+                if (macdContainer.style.display === 'none') {
+                    macdContainer.style.display = 'block';
+                } else {
+                    macdContainer.style.display = 'none';
+                }
+            }
+
+            // Attach toggle functions to the global window object
+            window.toggleRSIChart = toggleRSIChart;
+            window.toggleMACDChart = toggleMACDChart;
+    });
   </script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
