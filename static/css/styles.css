@@ -20,6 +20,7 @@ body {
 
 #macd-chart-container {
     display: none; /* Initially hidden */
+    width: 100%;
     margin-top: 20px;
     margin-left: 70px;
     padding-right: 240px;
