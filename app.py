@@ -11,84 +11,8 @@ from flask_mailman import Mail, EmailMessage
 
 mail = Mail()
 
-def calculate_macd(prices, slow=26, fast=12, signal=9):
-        if len(prices) < slow:
-            return None, None, None  # Not enough data to calculate MACD
-
-        def ema(prices, period):
-            k = 2 / (period + 1)
-            ema_values = [sum(prices[:period]) / period]
-            for price in prices[period:]:
-                ema_values.append(price * k + ema_values[-1] * (1 - k))
-            return ema_values
-
-        ema_fast = ema(prices, fast)
-        ema_slow = ema(prices, slow)
-        macd_line = [fast - slow for fast, slow in zip(ema_fast[-len(ema_slow):], ema_slow)]
-        signal_line = ema(macd_line, signal)
-        macd_histogram = [macd - signal for macd, signal in zip(macd_line[-len(signal_line):], signal_line)]
-
-        return macd_line, signal_line, macd_histogram
-    
-def calculate_rsi(prices, period=14):
-        if len(prices) < period:
-            return None  # Not enough data to calculate RSI
-
-        deltas = [prices[i] - prices[i - 1] for i in range(1, len(prices))]
-        gains = [delta if delta > 0 else 0 for delta in deltas]
-        losses = [-delta if delta < 0 else 0 for delta in deltas]
-
-        avg_gain = sum(gains[:period]) / period
-        avg_loss = sum(losses[:period]) / period
-
-        rsi = []
-        for i in range(period, len(prices)):
-            avg_gain = (avg_gain * (period - 1) + gains[i - 1]) / period
-            avg_loss = (avg_loss * (period - 1) + losses[i - 1]) / period
-
-            rs = avg_gain / avg_loss if avg_loss != 0 else 0
-            rsi.append(100 - (100 / (1 + rs)))
-
-        return rsi
-
-
-def calculate_sma(prices, period):
-    if len(prices) < period:
-        return None  # Not enough data to calculate SMA
-    sma = []
-    for i in range(len(prices) - period + 1):
-        sma.append(sum(prices[i:i + period]) / period)
-    return sma
-
-def calculate_bollinger_bands(prices, period=20, num_std_dev=2):
-    if len(prices) < period:
-        return None, None, None  # Not enough data to calculate Bollinger Bands
-
-    sma = calculate_sma(prices, period)
-    std_dev = [pd.Series(prices[i:i + period]).std() for i in range(len(prices) - period + 1)]
-    upper_band = [sma[i] + num_std_dev * std_dev[i] for i in range(len(sma))]
-    lower_band = [sma[i] - num_std_dev * std_dev[i] for i in range(len(sma))]
-    return upper_band, sma, lower_band
-
-def calculate_volume_analysis(prices, volumes):
-    pvi = [1000]  # Positive Volume Index
-    nvi = [1000]  # Negative Volume Index
-
-    for i in range(1, len(prices)):
-        if volumes[i] > volumes[i - 1]:
-            pvi.append(pvi[-1] + (prices[i] - prices[i - 1]) / prices[i - 1] * pvi[-1])
-            nvi.append(nvi[-1])
-        else:
-            nvi.append(nvi[-1] + (prices[i] - prices[i - 1]) / prices[i - 1] * nvi[-1])
-            pvi.append(pvi[-1])
-
-    return pvi, nvi
-
-def calculate_support_resistance(prices):
-    pivot = (max(prices) + min(prices) + prices[-1]) / 3
-    resistance = 2 * pivot - min(prices)
-    support = 2 * pivot - max(prices)
-    return support, resistance
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
 # search suggestion logic
 def search_stocks(query):
@@ -126,11 +50,11 @@ def search_stocks(query):
         return []
 
 # api fetching logic
-def fetch_api_data(symbol, timeframe):
+def fetch_api_data(symbol, timeframe, offset = 0):
     day = {'1W': [7, '15T'], '1M': [30, '1H'], '1Y': [365, '1D'], '5Y': [1825, '1W']}
     day = day.get(timeframe)
     end = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
-    start = (datetime.now() - timedelta(days=day[0])).strftime('%Y-%m-%dT00:00:00Z')
+    start = (datetime.now() - timedelta(days=day[0]+offset)).strftime('%Y-%m-%dT00:00:00Z')
     url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe={day[1]}&start={start}&end={end}&limit=1000&adjustment=raw&feed=iex&sort=asc"
     print(day)
     headers = {
@@ -144,8 +68,9 @@ def fetch_api_data(symbol, timeframe):
         return None
     return response.json()
 
-def prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger=None, volume=None, support_resistance=None):
+def prepare_candle_plot(data, sma_data = None, ema_data = None, bollinger_bands_data = None):
     results = data.get('bars', [])
+    results = results[5:-1]
     dates = [entry["t"] for entry in results]
     dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
     open_prices = [entry["o"] for entry in results]
@@ -158,73 +83,33 @@ def prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger
         open=open_prices,
         high=high_prices,
         low=low_prices,
-        close=close_prices
+        close=close_prices,
+        name='Candlestick',
+        showlegend=False
     )])
     
-    if sma:
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=sma,
-            mode='lines',
-            name='SMA',
-            line=dict(color='blue', width=2)
-        ))
-
-    if support_resistance:
-        fig.add_trace(go.Scatter(
-            x=[dates[0], dates[-1]],
-            y=[support_resistance['support'], support_resistance['support']],
-            mode='lines',
-            name='Support',
-            line=dict(color='green', width=2, dash='dash')
-        ))
-        fig.add_trace(go.Scatter(
-            x=[dates[0], dates[-1]],
-            y=[support_resistance['resistance'], support_resistance['resistance']],
-            mode='lines',
-            name='Resistance',
-            line=dict(color='red', width=2, dash='dash')
-        ))
-
-    if bollinger:
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=bollinger['upper_band'],
-            mode='lines',
-            name='Upper Band',
-            line=dict(color='rgba(255, 0, 0, 0.5)')
-        ))
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=bollinger['middle_band'],
-            mode='lines',
-            name='Middle Band',
-            line=dict(color='rgba(0, 255, 0, 0.5)')
-        ))
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=bollinger['lower_band'],
-            mode='lines',
-            name='Lower Band',
-            line=dict(color='rgba(0, 0, 255, 0.5)')
-        ))
-
-    if volume:
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=volume['pvi'],
-            mode='lines',
-            name='Positive Volume Index',
-            line=dict(color='rgba(255, 165, 0, 0.5)')
-        ))
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=volume['nvi'],
-            mode='lines',
-            name='Negative Volume Index',
-            line=dict(color='rgba(75, 0, 130, 0.5)')
-        ))
-
+    if sma_data:
+        sma_dates = [entry["t"] for entry in sma_data]
+        sma_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in sma_data]
+        sma_prices = [entry["sma"] for entry in sma_data]
+        fig.add_trace(go.Scatter(x=sma_dates, y=sma_prices, mode='lines', name='SMA', line=dict(color='blue')))
+        
+    if ema_data:
+        ema_dates = [entry["t"] for entry in ema_data]
+        ema_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in ema_data]
+        ema_prices = [entry["ema"] for entry in ema_data]
+        fig.add_trace(go.Scatter(x=ema_dates, y=ema_prices, mode='lines', name='EMA', line=dict(color='red')))
+    
+    if bollinger_bands_data:
+        middle_dates = [entry["t"] for entry in bollinger_bands_data]
+        middle_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in bollinger_bands_data]
+        middle_prices = [entry["middle_band"] for entry in bollinger_bands_data]
+        upper_prices = [entry["upper_band"] for entry in bollinger_bands_data]
+        lower_prices = [entry["lower_band"] for entry in bollinger_bands_data]
+        fig.add_trace(go.Scatter(x=middle_dates, y=middle_prices, mode='lines', name='Middle Band', line=dict(color='black')))
+        fig.add_trace(go.Scatter(x=middle_dates, y=upper_prices, mode='lines', name='Upper Band', line=dict(color='green')))
+        fig.add_trace(go.Scatter(x=middle_dates, y=lower_prices, mode='lines', name='Lower Band', line=dict(color='red')))
+    
     fig.update_layout(
         xaxis_title="Date",
         yaxis_title="Price (USD)",
@@ -236,10 +121,63 @@ def prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger
 
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-def create_app():
-    app = Flask(__name__)
-    app.secret_key = os.urandom(24)
+def calculate_sma(data):
+    results = data.get('bars', [])
+    chart_data = [{"t": entry["t"], "c": entry["c"], "sma": 0} for entry in results[5:-1]]
+    
+    for i in range(0, len(chart_data)):
+        sma = sum(entry["c"] for entry in results[i:i + 5]) / 5
+        chart_data[i]["sma"] = sma
 
+    return chart_data
+
+def calculate_ema(data):
+    results = data.get('bars', [])
+    chart_data = [{"t": entry["t"], "c": entry["c"], "ema": 0} for entry in results[5:-1]]
+    
+    sma = sum(entry["c"] for entry in results[0:0 + 5]) / 5
+    alpha = 2 / (5 + 1)
+    
+    chart_data[0]["ema"] = sma
+    
+    for i in range (1, len(chart_data)):
+        ema = (chart_data[i]["c"] * alpha) + (chart_data[i-1]["ema"] * (1 - alpha))
+        chart_data[i]["ema"] = ema
+        
+    return chart_data
+
+def macd_data(data):
+    pass
+
+def rsi_data(data):
+    pass
+
+def calculate_bollinger(data):
+    results = data.get('bars', [])
+    chart_data = [{"t": entry["t"], "c": entry["c"], "middle_band": 0, "upper_band":0, "lower_band": 0} for entry in results[20:-1]]
+    
+    for i in range(0, len(chart_data)):
+        sma = sum(entry["c"] for entry in results[i:i + 20]) / 20
+        chart_data[i]["middle_band"] = sma
+    
+    mean = sum(entry["middle_band"] for entry in chart_data) / len(chart_data)
+    diff_sq = [(entry["middle_band"] - mean) ** 2 for entry in chart_data]
+    variance = sum(diff_sq) / len(chart_data)
+    std_dev = variance ** 0.5
+    
+    for entry in chart_data:
+        entry["upper_band"] = entry["middle_band"] + (2 * std_dev)
+        entry["lower_band"] = entry["middle_band"] - (2 * std_dev)
+    
+    return chart_data        
+
+def volume_analysis_data(data):
+    pass
+
+def support_resistance_data(data):
+    pass
+
+def create_app():
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 465
     app.config['MAIL_USERNAME'] = 'swiiftstock@gmail.com'
@@ -504,7 +442,6 @@ def create_app():
                 return redirect(url_for('login'))
         if request.method == 'POST' and 'timeframe' in request.form:
             timeframe = request.form.get('timeframe')
-            print(timeframe)
             if timeframe:
                 os.system('cls')
                 print("timeframe", timeframe)
@@ -512,8 +449,7 @@ def create_app():
                 timeframe = '1W'
         else:
             timeframe = '1W'
-        user = session.get('username')    
-        print(user)
+        user = session.get('username') 
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
         command = """
@@ -523,7 +459,6 @@ def create_app():
         cursor.execute(command)
         result = cursor.fetchone()
         conn.close()
-        
 
         if result:
             session['symbol'], session['name'] = result
@@ -531,12 +466,12 @@ def create_app():
             return jsonify({"error": "No stock found in history"}), 404
         
         symbol = session.get('symbol', '').strip()
-        name = session.get('name', '').strip()
         
+        data = fetch_api_data(symbol, timeframe)
         
         data = fetch_api_data(symbol, '1Y') # for fetching first 3 analysis
+        
         analysis = ["" for _ in range(12)]
-        # analysis.append(owned) #stocks owned
         results = data.get('bars', [])
         
         #Price analysis
@@ -544,36 +479,17 @@ def create_app():
         analysis[2]=(f'{results[0]["l"]:.2f} - {results[0]["h"]:.2f}')
         analysis[3]=(f"{min(entry['l'] for entry in results)} - {max(entry['h'] for entry in results)}")
         
-        #Trend indicators
-        data = fetch_api_data(symbol, timeframe)
-
-        #Risk and volatility
-        # Define dates
-        dates = [entry["t"] for entry in results]
-        dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
-        close_prices = [entry["c"] for entry in results]
-
-        # Bollinger Bands
-        upper_band, middle_band, lower_band = calculate_bollinger_bands(close_prices)
-    
-        # Volume Analysis
-        volumes = [entry["v"] for entry in results]
-        pvi, nvi = calculate_volume_analysis(close_prices, volumes)
-    
-        # Support and Resistance
-        support, resistance = calculate_support_resistance(close_prices)
-    
-        chart_data = prepare_candle_plot(data, sma=None, ema=None, macd=None, rsi=None, bollinger={
-            'upper_band': upper_band,
-            'middle_band': middle_band,
-            'lower_band': lower_band
-        }, volume={
-            'pvi': pvi,
-            'nvi': nvi
-        }, support_resistance={
-            'support': support,
-            'resistance': resistance
-        })
+        data = fetch_api_data(symbol, timeframe, 5)
+        sma_data = calculate_sma(data)
+        ema_data = calculate_ema(data)
+        analysis[4] = f'{sma_data[-1]["sma"]:.2f}'
+        analysis[5] = f'{ema_data[-1]["ema"]:.2f}'
+        
+        data = fetch_api_data(symbol, timeframe, 20)
+        bollinger_bands_data = calculate_bollinger(data)
+        
+        data = fetch_api_data(symbol, timeframe, 5)
+        chart_data = prepare_candle_plot(data, sma_data, ema_data, bollinger_bands_data=bollinger_bands_data)
         
         # Check if the symbol is in the monitoring table for the user
         conn = sqlite3.connect('tickers.db')
@@ -582,7 +498,7 @@ def create_app():
         is_monitored = cursor.fetchone() is not None
         conn.close()
         
-        return render_template('spiaalatest.html', data=analysis, symbol=symbol, name=name, analysis=analysis, chart_data=chart_data, is_monitored=is_monitored)
+        return render_template('spiaalatest.html', data=analysis, chart_data=chart_data, is_monitored=is_monitored)
    
     @app.route('/set_stock') 
     def set_stock():
@@ -640,6 +556,7 @@ def create_app():
     #     return render_template('error.html', error_message=e), 500
 
     return app
+
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)
