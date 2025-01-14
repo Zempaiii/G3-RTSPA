@@ -11,6 +11,9 @@ from flask_mailman import Mail, EmailMessage
 
 mail = Mail()
 
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
 # search suggestion logic
 def search_stocks(query):
     try:
@@ -175,9 +178,6 @@ def support_resistance_data(data):
     pass
 
 def create_app():
-    app = Flask(__name__)
-    app.secret_key = os.urandom(24)
-
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 465
     app.config['MAIL_USERNAME'] = 'swiiftstock@gmail.com'
