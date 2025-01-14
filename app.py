@@ -195,7 +195,7 @@ def create_app():
     # homepage backend
     @app.route('/')
     def start():
-        return redirect(url_for('home'))
+        return redirect(url_for('login'))
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -251,7 +251,10 @@ def create_app():
             msg.send()
             session['code'] = code
             session['method'] = 'register'
-            return verify(email, username, password)
+            session['email'] = email
+            session['username'] = username
+            session['password'] = password
+            return jsonify({"success": True, "message": "Verification code sent. Redirecting to verification page."})
         return render_template('register.html')
 
     @app.route('/verify', methods=['GET', 'POST'])
@@ -260,26 +263,24 @@ def create_app():
             code = request.form.get('code')
             if code == session.get('code'):
                 if session['method'] == 'register':
-                    hashed_password = generate_password_hash(password)
+                    hashed_password = generate_password_hash(session['password'])
                     conn = sqlite3.connect('tickers.db')
                     cursor = conn.cursor()
-                    cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_password))
+                    cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (session['username'], session['email'], hashed_password))
                     conn.commit()
                     conn.close()
                     session.pop('code', None)
                     session.pop('method', None)
-                    redirect(url_for('login'))
                     return jsonify({"success": True, "message": "Registration successful."})
                 elif session['method'] == 'forgot':
-                    hashed_password = generate_password_hash(password)
+                    hashed_password = generate_password_hash(session['password'])
                     conn = sqlite3.connect('tickers.db')
                     cursor = conn.cursor()
-                    cursor.execute("UPDATE users SET password = ? WHERE email = ?", (hashed_password, email))
+                    cursor.execute("UPDATE users SET password = ? WHERE email = ?", (hashed_password, session['email']))
                     conn.commit()
                     conn.close()
                     session.pop('code', None)
                     session.pop('method', None)
-                    redirect(url_for('login'))
                     return jsonify({"success": True, "message": "Verification successful."})
             else:
                 return jsonify({"success": False, "message": "Invalid verification code."})
@@ -288,8 +289,8 @@ def create_app():
     @app.route('/forgot', methods=['GET', 'POST'])
     def forgot():
         if request.method == 'POST':
-            email = request.form['email']
-            password = request.form['new_password']
+            email = request.form.get('email')
+            password = request.form.get('new_password')
             conn = sqlite3.connect('tickers.db')
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
@@ -309,7 +310,9 @@ def create_app():
             msg.send()
             session['code'] = code
             session['method'] = 'forgot'
-            return verify(email, password=password)
+            session['email'] = email
+            session['password'] = password
+            return jsonify({"success": True, "message": "Verification code sent. Redirecting to verification page."})
 
         return render_template('forgot.html')
 

@@ -32,7 +32,8 @@ document.getElementById("registerButton").addEventListener("click", function(eve
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert("Registration successful!");
+                alert("Registration successful! Redirecting to verification page.");
+                window.location.href = "/verify";
             } else {
                 alert("Registration failed: " + data.message);
             }

@@ -11,17 +11,15 @@ document.getElementById("submitbutton").addEventListener("click", function(event
     })
     .then(response => response.json())
     .then(data => {
-            alert(response)
         if (data.success) {
             alert("Verification successful!");
+            window.location.href = "/login";
         } else {
             alert("Verification failed: " + data.message);
         }
     })
     .catch(error => {
-        alert(response, data)
         console.error('Error:', error);
         alert("An error occurred during verification. error: " + error);
     });
-    
 });
