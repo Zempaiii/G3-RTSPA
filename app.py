@@ -54,7 +54,7 @@ def fetch_api_data(symbol, timeframe, offset = 0):
     day = {'1W': [7, '15T'], '1M': [30, '1H'], '1Y': [365, '1D'], '5Y': [1825, '1W']}
     day = day.get(timeframe)
     end = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
-    offset_days = offset * {'1W': .0475, '1M': .1, '1Y': 1, '5Y': 7}[timeframe]
+    offset_days = offset * {'1W': .03, '1M': .1, '1Y': 1, '5Y': 7}[timeframe]
     start = (datetime.now() - timedelta(days=day[0] + offset_days)).strftime('%Y-%m-%dT00:00:00Z')
     url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe={day[1]}&start={start}&end={end}&limit=1000&adjustment=raw&feed=iex&sort=asc"
     print(day)
@@ -93,39 +93,59 @@ def prepare_candle_plot(data, sma_data = None, ema_data = None, bollinger_bands_
         sma_dates = [entry["t"] for entry in sma_data]
         sma_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in sma_data]
         sma_prices = [entry["sma"] for entry in sma_data]
-        fig.add_trace(go.Scatter(x=sma_dates, y=sma_prices, mode='lines', name='SMA', line=dict(color='blue')))
+        fig.add_trace(go.Scatter(x=sma_dates, y=sma_prices, mode='lines', name='SMA', line=dict(color='blue'), showlegend=False))
         
     if ema_data:
         ema_dates = [entry["t"] for entry in ema_data]
         ema_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in ema_data]
         ema_prices = [entry["ema"] for entry in ema_data]
-        fig.add_trace(go.Scatter(x=ema_dates, y=ema_prices, mode='lines', name='EMA', line=dict(color='red')))
+        fig.add_trace(go.Scatter(x=ema_dates, y=ema_prices, mode='lines', name='EMA', line=dict(color='orange'), showlegend=False))
     
     if bollinger_bands_data:
-        middle_dates = [entry["t"] for entry in bollinger_bands_data]
-        middle_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in bollinger_bands_data]
+        band_dates = [entry["t"] for entry in bollinger_bands_data]
+        band_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in bollinger_bands_data]
         middle_prices = [entry["middle_band"] for entry in bollinger_bands_data]
         upper_prices = [entry["upper_band"] for entry in bollinger_bands_data]
         lower_prices = [entry["lower_band"] for entry in bollinger_bands_data]
-        fig.add_trace(go.Scatter(x=middle_dates, y=middle_prices, mode='lines', name='Middle Band', line=dict(color='black')))
-        fig.add_trace(go.Scatter(x=middle_dates, y=upper_prices, mode='lines', name='Upper Band', line=dict(color='green')))
-        fig.add_trace(go.Scatter(x=middle_dates, y=lower_prices, mode='lines', name='Lower Band', line=dict(color='red')))
-    
-    if macd_data:
-        macd_dates = [entry["t"] for entry in macd_data]
-        macd_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in macd_data]
-        macd_prices = [entry["macd"] for entry in macd_data]
-        signal_prices = [entry["signal"] for entry in macd_data]
-        fig.add_trace(go.Scatter(x=macd_dates, y=macd_prices, mode='lines', name='MACD', line=dict(color='purple')))
-        fig.add_trace(go.Scatter(x=macd_dates, y=signal_prices, mode='lines', name='Signal', line=dict(color='black')))
+        
+        fig.add_trace(go.Scatter(x=band_dates, y=middle_prices, mode='lines', name='Middle Band', line=dict(color='black'), showlegend=False))
+        fig.add_trace(go.Scatter(x=band_dates, y=upper_prices, mode='lines', name='Upper Band', line=dict(color='green'), showlegend=False))
+        fig.add_trace(go.Scatter(x=band_dates, y=lower_prices, mode='lines', name='Lower Band', line=dict(color='red'), showlegend=False))
     
     fig.update_layout(
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="left",
+                buttons=[
+                    dict(
+                        label="Toggle SMA",
+                        method="update",
+                        args=[{"visible": [True, True, False, False, False, False]}]
+                    ),
+                    dict(
+                        label="Toggle EMA",
+                        method="update",
+                        args=[{"visible": [True, False, True, False, False, False]}],
+                    ),
+                    dict(
+                        label="Toggle Bollinger Bands",
+                        method="update",
+                        args=[{"visible": [True, False, False, True, True, True]}],
+                    ),
+                ],
+                x=0.5,
+                xanchor="center",
+                y=-0.2,
+                yanchor="top"
+            )
+        ],
         xaxis_title="Date",
         yaxis_title="Price (USD)",
         xaxis_rangeslider_visible=False,
         xaxis_visible=False,
         template="plotly_white",
-        xaxis_type = "category"
+        xaxis_type="category"
     )
 
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -358,7 +378,10 @@ def create_app():
 
     @app.route('/home')
     def home():
-        check_login()
+        if not session:
+            print("No session, redirecting to login")
+            return redirect(url_for('login'))
+        
         headers = {
                 "accept": "application/json",
                 "APCA-API-KEY-ID": "PK9XXY01BXT1F6L9EFZ4",
@@ -373,11 +396,9 @@ def create_app():
             return render_template('index.html', stocks=symbol_data)
         
         sample = response.json().get("most_actives", [])
-        os.system('cls')
         sample = random.sample(sample, 12)
         for data in symbol_data:
             selected_result = sample.pop()
-            print(selected_result)
             data["symbol"] = selected_result["symbol"]
             data["name"] = search_stocks(data["symbol"])[0].get("Name")
             data["volume"] = f'{(selected_result["volume"] / 1000000):.2f}'
@@ -408,7 +429,10 @@ def create_app():
     # to be removed
     @app.route('/stock_monitoring')
     def stock_monitoring():
-        check_login()
+        if not session:
+            print("No session, redirecting to login")
+            return redirect(url_for('login'))
+        
         if session.get('username') is None:
             conn = sqlite3.connect('tickers.db')
             cursor = conn.cursor()
@@ -461,7 +485,9 @@ def create_app():
     # retrieving graph data from API
     @app.route('/spiaa', methods=['GET', 'POST'])
     def spiaa():
-        check_login()
+        if not session:
+            print("No session, redirecting to login")
+            return redirect(url_for('login'))
         if session.get('username') is None:
             conn = sqlite3.connect('tickers.db')
             cursor = conn.cursor()
@@ -585,10 +611,14 @@ def create_app():
         
         return jsonify({"success": True, "message": message})
     
+    @app.route('/signout')
+    def signout():
+        session.clear()
+        return redirect(url_for('login'))
     
-    # @app.errorhandler(Exception)
-    # def handle_errors(e):
-    #     return render_template('error.html', error_message=e), 500
+    @app.errorhandler(Exception)
+    def handle_errors(e):
+        return render_template('error.html', error_message=e), 500
 
     return app
 
