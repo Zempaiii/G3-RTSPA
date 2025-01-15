@@ -54,7 +54,8 @@ def fetch_api_data(symbol, timeframe, offset = 0):
     day = {'1W': [7, '15T'], '1M': [30, '1H'], '1Y': [365, '1D'], '5Y': [1825, '1W']}
     day = day.get(timeframe)
     end = datetime.now().strftime('%Y-%m-%dT00:00:00Z')
-    start = (datetime.now() - timedelta(days=day[0]+offset)).strftime('%Y-%m-%dT00:00:00Z')
+    offset_days = offset * {'1W': .0475, '1M': .1, '1Y': 1, '5Y': 7}[timeframe]
+    start = (datetime.now() - timedelta(days=day[0] + offset_days)).strftime('%Y-%m-%dT00:00:00Z')
     url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars?timeframe={day[1]}&start={start}&end={end}&limit=1000&adjustment=raw&feed=iex&sort=asc"
     print(day)
     headers = {
@@ -68,7 +69,7 @@ def fetch_api_data(symbol, timeframe, offset = 0):
         return None
     return response.json()
 
-def prepare_candle_plot(data, sma_data = None, ema_data = None, bollinger_bands_data = None):
+def prepare_candle_plot(data, sma_data = None, ema_data = None, bollinger_bands_data = None, macd_data = None):
     results = data.get('bars', [])
     results = results[5:-1]
     dates = [entry["t"] for entry in results]
@@ -110,6 +111,14 @@ def prepare_candle_plot(data, sma_data = None, ema_data = None, bollinger_bands_
         fig.add_trace(go.Scatter(x=middle_dates, y=upper_prices, mode='lines', name='Upper Band', line=dict(color='green')))
         fig.add_trace(go.Scatter(x=middle_dates, y=lower_prices, mode='lines', name='Lower Band', line=dict(color='red')))
     
+    if macd_data:
+        macd_dates = [entry["t"] for entry in macd_data]
+        macd_dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in macd_data]
+        macd_prices = [entry["macd"] for entry in macd_data]
+        signal_prices = [entry["signal"] for entry in macd_data]
+        fig.add_trace(go.Scatter(x=macd_dates, y=macd_prices, mode='lines', name='MACD', line=dict(color='purple')))
+        fig.add_trace(go.Scatter(x=macd_dates, y=signal_prices, mode='lines', name='Signal', line=dict(color='black')))
+    
     fig.update_layout(
         xaxis_title="Date",
         yaxis_title="Price (USD)",
@@ -119,6 +128,31 @@ def prepare_candle_plot(data, sma_data = None, ema_data = None, bollinger_bands_
         xaxis_type = "category"
     )
 
+    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+def prepare_line_graph(data, res):
+    data = [data.get('bars', []) for data in data]
+    fig = go.Figure()
+    i = 0
+    for line in data:
+        if line:
+            fig.add_trace(go.Scatter(
+                x=[entry["t"] for entry in line],
+                y=[entry["c"] for entry in line],
+                mode='lines',
+                name=res[i]
+            ))
+        i += 1
+    
+    fig.update_layout(
+        xaxis_title="Date",
+        yaxis_title="Price (USD)",
+        xaxis_rangeslider_visible=False,
+        xaxis_visible=False,
+        template="plotly_white",
+        xaxis_type="category"
+    )
+    
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
 def calculate_sma(data):
@@ -144,38 +178,44 @@ def calculate_ema(data):
         ema = (chart_data[i]["c"] * alpha) + (chart_data[i-1]["ema"] * (1 - alpha))
         chart_data[i]["ema"] = ema
         
+    print("ema", len(chart_data))
     return chart_data
 
-def macd_data(data):
-    pass
-
 def rsi_data(data):
-    pass
+    results = data.get('bars', [])
+    chart_data = [{"t": entry["t"], "c": entry["c"], "rsi": 0} for entry in results[14:]]
+
+    for i in range(len(chart_data)):
+        gains = []
+        losses = []
+        for j in range(i, i + 14):
+            change = results[j + 1]["c"] - results[j]["c"]
+            if change > 0:
+                gains.append(change)
+            else:
+                losses.append(abs(change))
+        
+        average_gain = sum(gains) / 14
+        average_loss = sum(losses) / 14
+        rs = average_gain / average_loss if average_loss != 0 else 0
+        rsi = 100 - (100 / (1 + rs))
+        chart_data[i]["rsi"] = rsi
+
+    return chart_data[-1]['rsi']
 
 def calculate_bollinger(data):
     results = data.get('bars', [])
-    chart_data = [{"t": entry["t"], "c": entry["c"], "middle_band": 0, "upper_band":0, "lower_band": 0} for entry in results[20:-1]]
+    chart_data = [{"t": entry["t"], "c": entry["c"], "middle_band": 0, "upper_band":0, "lower_band": 0} for entry in results[19:]]
     
     for i in range(0, len(chart_data)):
-        sma = sum(entry["c"] for entry in results[i:i + 20]) / 20
+        sma = sum(entry["c"] for entry in results[i:i+20]) / 20
         chart_data[i]["middle_band"] = sma
-    
-    mean = sum(entry["middle_band"] for entry in chart_data) / len(chart_data)
-    diff_sq = [(entry["middle_band"] - mean) ** 2 for entry in chart_data]
-    variance = sum(diff_sq) / len(chart_data)
-    std_dev = variance ** 0.5
-    
-    for entry in chart_data:
-        entry["upper_band"] = entry["middle_band"] + (2 * std_dev)
-        entry["lower_band"] = entry["middle_band"] - (2 * std_dev)
+        
+        stdev = (sum((entry["c"] - sma) ** 2 for entry in results[i:i+20]) / 20) ** 0.5
+        chart_data[i]["upper_band"] = sma + (2 * stdev)
+        chart_data[i]["lower_band"] = sma - (2 * stdev)
     
     return chart_data        
-
-def volume_analysis_data(data):
-    pass
-
-def support_resistance_data(data):
-    pass
 
 def create_app():
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -195,7 +235,7 @@ def create_app():
     # homepage backend
     @app.route('/')
     def start():
-        return redirect(url_for('home'))
+        return redirect(url_for('login'))
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -251,7 +291,10 @@ def create_app():
             msg.send()
             session['code'] = code
             session['method'] = 'register'
-            return verify(email, username, password)
+            session['email'] = email
+            session['username'] = username
+            session['password'] = password
+            return jsonify({"success": True, "message": "Verification code sent. Redirecting to verification page."})
         return render_template('register.html')
 
     @app.route('/verify', methods=['GET', 'POST'])
@@ -260,26 +303,24 @@ def create_app():
             code = request.form.get('code')
             if code == session.get('code'):
                 if session['method'] == 'register':
-                    hashed_password = generate_password_hash(password)
+                    hashed_password = generate_password_hash(session['password'])
                     conn = sqlite3.connect('tickers.db')
                     cursor = conn.cursor()
-                    cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_password))
+                    cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (session['username'], session['email'], hashed_password))
                     conn.commit()
                     conn.close()
                     session.pop('code', None)
                     session.pop('method', None)
-                    redirect(url_for('login'))
                     return jsonify({"success": True, "message": "Registration successful."})
                 elif session['method'] == 'forgot':
-                    hashed_password = generate_password_hash(password)
+                    hashed_password = generate_password_hash(session['password'])
                     conn = sqlite3.connect('tickers.db')
                     cursor = conn.cursor()
-                    cursor.execute("UPDATE users SET password = ? WHERE email = ?", (hashed_password, email))
+                    cursor.execute("UPDATE users SET password = ? WHERE email = ?", (hashed_password, session['email']))
                     conn.commit()
                     conn.close()
                     session.pop('code', None)
                     session.pop('method', None)
-                    redirect(url_for('login'))
                     return jsonify({"success": True, "message": "Verification successful."})
             else:
                 return jsonify({"success": False, "message": "Invalid verification code."})
@@ -288,8 +329,8 @@ def create_app():
     @app.route('/forgot', methods=['GET', 'POST'])
     def forgot():
         if request.method == 'POST':
-            email = request.form['email']
-            password = request.form['new_password']
+            email = request.form.get('email')
+            password = request.form.get('new_password')
             conn = sqlite3.connect('tickers.db')
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
@@ -309,7 +350,9 @@ def create_app():
             msg.send()
             session['code'] = code
             session['method'] = 'forgot'
-            return verify(email, password=password)
+            session['email'] = email
+            session['password'] = password
+            return jsonify({"success": True, "message": "Verification code sent. Redirecting to verification page."})
 
         return render_template('forgot.html')
 
@@ -411,19 +454,8 @@ def create_app():
                     data["low"] = f'{results[0]["l"]:.2f}'
                     data["volume"] = f'{(results[0]["v"] / 1000000):.2f}'
         
-        lines = [fetch_api_data(symbol, '1W') for symbol in res]
-        def prepare_line_graph(data):
-            fig = go.Figure()
-            for i in range(len(res)):
-                results = data[i].get('bars', [])
-                dates = [entry["t"] for entry in results]
-                dates = [datetime.strptime(entry["t"], '%Y-%m-%dT%H:%M:%SZ') + timedelta(hours=8) for entry in results]
-                close_prices = [entry["c"] for entry in results]
-                fig.add_trace(go.Scatter(x=dates, y=close_prices, mode='lines', name=res[i]))
-        
-        chart_data = prepare_line_graph(lines)
-        
-        
+        lines = [fetch_api_data(symbol, '5Y') for symbol in res]
+        chart_data = prepare_line_graph(lines, res)
         return render_template('stockmonitoring.html', stocks=symbol_data, chart_data=chart_data)
 
     # retrieving graph data from API
@@ -489,8 +521,11 @@ def create_app():
         bollinger_bands_data = calculate_bollinger(data)
         
         data = fetch_api_data(symbol, timeframe, 5)
+        analysis[7] = f"{rsi_data(data):.2f}"
+        analysis[8] = f"{bollinger_bands_data[-1]['upper_band']:.2f}"
+        analysis[9] = f"{bollinger_bands_data[-1]['middle_band']:.2f}"
+        analysis[10] = f"{bollinger_bands_data[-1]['lower_band']:.2f}"
         chart_data = prepare_candle_plot(data, sma_data, ema_data, bollinger_bands_data=bollinger_bands_data)
-        
         # Check if the symbol is in the monitoring table for the user
         conn = sqlite3.connect('tickers.db')
         cursor = conn.cursor()
@@ -498,7 +533,7 @@ def create_app():
         is_monitored = cursor.fetchone() is not None
         conn.close()
         
-        return render_template('spiaalatest.html', data=analysis, chart_data=chart_data, is_monitored=is_monitored)
+        return render_template('spiaalatest.html', name=session['name'], symbol=session['symbol'], data=analysis, chart_data=chart_data, is_monitored=is_monitored)
    
     @app.route('/set_stock') 
     def set_stock():
